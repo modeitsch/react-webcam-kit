@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import 'react-webcam-kit';
+import { Webcam } from 'react-webcam-kit';
 
 function App() {
   return (
@@ -19,8 +19,11 @@ function App() {
         <p style={{ margin: 0, color: '#2563eb', fontWeight: 700 }}>react-webcam-kit</p>
         <h1 style={{ margin: '12px 0', fontSize: 44, lineHeight: 1.05 }}>Basic example</h1>
         <p style={{ margin: 0, color: '#475569', fontSize: 18, lineHeight: 1.6 }}>
-          Camera controls will be added here as the component and hook APIs land.
+          A minimal camera preview using the migration-friendly component API.
         </p>
+        <div style={{ marginTop: 24, overflow: 'hidden', borderRadius: 8, background: '#0f172a' }}>
+          <Webcam audio={false} style={{ display: 'block', width: '100%' }} />
+        </div>
       </section>
     </main>
   );

@@ -18,10 +18,10 @@ const upgradeItems = [
 ];
 
 const roadmapItems = [
-  'Webcam component',
-  'useWebcam hook',
-  'useDevices hook',
-  'Mobile browser examples',
+  'Recorder helper hook',
+  'Migration recipes',
+  'Live camera demos',
+  'Device test matrix',
 ];
 
 function App() {
@@ -87,10 +87,10 @@ function App() {
       <section className="section install" id="install">
         <div>
           <p className="section-label">Install</p>
-          <h2>Ready for package development.</h2>
+          <h2>Core package API is in place.</h2>
           <p>
-            The project foundation is in place with strict TypeScript, linting, tests, dual package
-            output, and this GitHub Pages site.
+            The package includes a compatibility component, hook APIs, Blob capture, strict
+            TypeScript, tests, dual package output, and this GitHub Pages site.
           </p>
         </div>
         <pre>
@@ -100,7 +100,7 @@ function App() {
 
       <section className="section roadmap" id="roadmap">
         <p className="section-label">Roadmap</p>
-        <h2>The first release is focused on trust and adoption.</h2>
+        <h2>Next up: deeper examples and browser coverage.</h2>
         <div className="roadmap__items">
           {roadmapItems.map((item, index) => (
             <div className="roadmap__item" key={item}>

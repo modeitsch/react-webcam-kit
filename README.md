@@ -7,9 +7,6 @@ stream lifecycle control.
 without fighting low-level `getUserMedia` behavior on every screen. The package is TypeScript-first,
 React 18/19 ready, and built around a small hook-based core with a migration-friendly component API.
 
-> This package is in early development. The project foundation is ready; the camera API is being
-> implemented next.
-
 ## Why This Package
 
 Browser webcam work looks simple until it reaches real devices. Camera permissions, mobile browser
@@ -40,7 +37,7 @@ pnpm add react-webcam-kit
 yarn add react-webcam-kit
 ```
 
-## Planned Quick Start
+## Quick Start
 
 ```tsx
 import { Webcam } from 'react-webcam-kit';
@@ -50,7 +47,41 @@ export function CameraPreview() {
 }
 ```
 
-## Planned Hook Usage
+## Screenshot By Ref
+
+```tsx
+import { useRef } from 'react';
+import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+
+export function AvatarCapture() {
+  const webcamRef = useRef<WebcamHandle>(null);
+
+  return (
+    <>
+      <Webcam ref={webcamRef} audio={false} screenshotFormat="image/jpeg" />
+      <button
+        type="button"
+        onClick={() => {
+          const image = webcamRef.current?.getScreenshot();
+          console.log(image);
+        }}
+      >
+        Capture
+      </button>
+    </>
+  );
+}
+```
+
+## Screenshot As Blob
+
+```tsx
+const blob = await webcamRef.current?.getScreenshotBlob({
+  format: 'image/png',
+});
+```
+
+## Hook Usage
 
 ```tsx
 import { useWebcam } from 'react-webcam-kit';
@@ -72,6 +103,55 @@ export function CameraControls() {
 }
 ```
 
+## Camera Switching
+
+```tsx
+await camera.switchDevice('device-id-from-enumerate-devices');
+```
+
+`switchDevice` uses an exact `deviceId` constraint so Chrome and mobile browsers are more likely to
+select the intended camera:
+
+```ts
+{
+  deviceId: {
+    exact: deviceId;
+  }
+}
+```
+
+## Compatibility With `react-webcam`
+
+`react-webcam-kit` keeps the familiar component shape:
+
+- `audio`
+- `audioConstraints`
+- `videoConstraints`
+- `mirrored`
+- `screenshotFormat`
+- `screenshotQuality`
+- `forceScreenshotSourceSize`
+- `imageSmoothing`
+- `minScreenshotWidth`
+- `minScreenshotHeight`
+- `disablePictureInPicture`
+- `onUserMedia`
+- `onUserMediaError`
+- `getScreenshot({ width, height })`
+- render-prop children receiving `{ getScreenshot }`
+
+It also adds:
+
+- `useWebcam`
+- `useDevices`
+- `getScreenshotBlob`
+- `startOnMount`
+- `enabled`
+- `onStart`
+- `onStop`
+- `onError`
+- `onPermissionChange`
+
 ## Development
 
 ```bash
@@ -90,20 +170,39 @@ Available scripts:
 
 ## Roadmap
 
-- `Webcam` component
-- `useWebcam` hook
-- `useDevices` hook
-- `getScreenshot()` and `getScreenshotBlob()`
-- Device switching with exact `deviceId` constraints
-- Normalized media errors
-- Mobile browser reliability examples
-- Migration guide for common `react-webcam` usage
+- MediaRecorder helper hook
+- More browser/device recipes
+- Dedicated migration guide examples
+- Interactive documentation site demos
 
 ## Browser Requirements
 
 Camera access requires `navigator.mediaDevices.getUserMedia`, which is available only in secure
 contexts such as HTTPS and localhost. Browser support and device behavior vary, especially on mobile
 Safari, Android devices, and privacy-hardened browsers.
+
+For mobile devices, prefer `ideal` constraints over strict high-resolution constraints:
+
+```tsx
+<Webcam
+  audio={false}
+  videoConstraints={{
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    facingMode: { ideal: 'environment' },
+  }}
+/>
+```
+
+## Publishing
+
+Before publishing:
+
+```bash
+npm run verify
+npm pack --dry-run
+npm publish --dry-run
+```
 
 ## License
 

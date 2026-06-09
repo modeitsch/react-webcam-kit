@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 export type CameraStatus =
   | 'idle'
@@ -24,6 +24,12 @@ export interface ScreenshotOptions {
   minHeight?: number;
 }
 
+export type CaptureFrameResultType = 'canvas' | 'data-url' | 'blob' | 'image-data';
+
+export type CaptureFrameOptions = ScreenshotOptions & {
+  type?: CaptureFrameResultType;
+};
+
 export interface CameraError {
   name: string;
   message: string;
@@ -44,3 +50,58 @@ export interface WebcamFallbackProps {
 }
 
 export type WebcamFallback = ReactNode | ((props: WebcamFallbackProps) => ReactNode);
+
+export interface UseDevicesResult {
+  audioInputs: MediaDeviceInfo[];
+  error: CameraError | null;
+  permission: PermissionState | 'unsupported' | 'unknown';
+  refresh: () => Promise<void>;
+  videoInputs: MediaDeviceInfo[];
+}
+
+export interface UseWebcamOptions {
+  audio?: boolean;
+  audioConstraints?: MediaStreamConstraints['audio'];
+  enabled?: boolean;
+  forceScreenshotSourceSize?: boolean;
+  imageSmoothing?: boolean;
+  mirrored?: boolean;
+  onDevicesChanged?: (devices: MediaDeviceInfo[]) => void;
+  onError?: (error: CameraError) => void;
+  onPermissionChange?: (permission: PermissionState | 'unsupported' | 'unknown') => void;
+  onStart?: (stream: MediaStream) => void;
+  onStop?: () => void;
+  onUserMedia?: (stream: MediaStream) => void;
+  onUserMediaError?: (error: CameraError) => void;
+  screenshotFormat?: ScreenshotFormat;
+  screenshotQuality?: number;
+  startOnMount?: boolean;
+  videoConstraints?: MediaStreamConstraints['video'];
+}
+
+export interface UseWebcamResult {
+  devices: MediaDeviceInfo[];
+  error: CameraError | null;
+  getCanvas: (options?: ScreenshotOptions) => HTMLCanvasElement | null;
+  getScreenshot: (options?: ScreenshotOptions) => string | null;
+  getScreenshotBlob: (options?: ScreenshotOptions) => Promise<Blob | null>;
+  permission: PermissionState | 'unsupported' | 'unknown';
+  refreshDevices: () => Promise<void>;
+  restart: () => Promise<MediaStream | null>;
+  selectedDeviceId: string | null;
+  start: (constraintsOverride?: MediaStreamConstraints) => Promise<MediaStream | null>;
+  status: CameraStatus;
+  stop: () => void;
+  stream: MediaStream | null;
+  switchDevice: (
+    deviceId: string,
+    constraints?: MediaTrackConstraints,
+  ) => Promise<MediaStream | null>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+}
+
+export interface WebcamChildrenProps {
+  getScreenshot: (options?: ScreenshotOptions) => string | null;
+}
+
+export type WebcamVideoProps = Omit<ComponentPropsWithoutRef<'video'>, 'children' | 'ref'>;
