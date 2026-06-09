@@ -7,7 +7,7 @@
   "homepage": "https://modeitsch.github.io/react-webcam-kit/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/modeitsch/react-webcam-kit.git"
+    "url": "git+https://github.com/modeitsch/react-webcam-kit.git"
   },
   "bugs": {
     "url": "https://github.com/modeitsch/react-webcam-kit/issues"
