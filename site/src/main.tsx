@@ -30,7 +30,7 @@ function App() {
       <section className="hero">
         <div className="hero__content">
           <p className="eyebrow">React camera toolkit</p>
-          <h1>@modeitsch/react-camera</h1>
+          <h1>react-webcam-kit</h1>
           <p className="lead">
             A polished webcam component and hooks package for React apps that need camera preview,
             capture, device switching, and reliable media cleanup.
@@ -94,7 +94,7 @@ function App() {
           </p>
         </div>
         <pre>
-          <code>npm install @modeitsch/react-camera</code>
+          <code>npm install react-webcam-kit</code>
         </pre>
       </section>
 

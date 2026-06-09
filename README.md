@@ -1,9 +1,9 @@
-# @modeitsch/react-camera
+# react-webcam-kit
 
 A modern React camera toolkit for webcam preview, still capture, device switching, and media
 stream lifecycle control.
 
-`@modeitsch/react-camera` is designed for production React apps that need browser camera access
+`react-webcam-kit` is designed for production React apps that need browser camera access
 without fighting low-level `getUserMedia` behavior on every screen. The package is TypeScript-first,
 React 18/19 ready, and built around a small hook-based core with a migration-friendly component API.
 
@@ -29,21 +29,21 @@ This package aims to make those flows predictable:
 ## Install
 
 ```bash
-npm install @modeitsch/react-camera
+npm install react-webcam-kit
 ```
 
 ```bash
-pnpm add @modeitsch/react-camera
+pnpm add react-webcam-kit
 ```
 
 ```bash
-yarn add @modeitsch/react-camera
+yarn add react-webcam-kit
 ```
 
 ## Planned Quick Start
 
 ```tsx
-import { Webcam } from '@modeitsch/react-camera';
+import { Webcam } from 'react-webcam-kit';
 
 export function CameraPreview() {
   return <Webcam audio={false} mirrored />;
@@ -53,7 +53,7 @@ export function CameraPreview() {
 ## Planned Hook Usage
 
 ```tsx
-import { useWebcam } from '@modeitsch/react-camera';
+import { useWebcam } from 'react-webcam-kit';
 
 export function CameraControls() {
   const camera = useWebcam({ audio: false });
