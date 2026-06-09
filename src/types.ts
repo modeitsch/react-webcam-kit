@@ -53,6 +53,15 @@ export type WebcamFallback = ReactNode | ((props: WebcamFallbackProps) => ReactN
 
 export interface UseDevicesResult {
   audioInputs: MediaDeviceInfo[];
+  counts: {
+    audio: number;
+    video: number;
+  };
+  devicesById: Record<string, MediaDeviceInfo>;
+  devicesByType: {
+    audio: MediaDeviceInfo[];
+    video: MediaDeviceInfo[];
+  };
   error: CameraError | null;
   permission: PermissionState | 'unsupported' | 'unknown';
   refresh: () => Promise<void>;
@@ -90,12 +99,17 @@ export interface UseWebcamResult {
   refreshDevices: () => Promise<void>;
   restart: () => Promise<MediaStream | null>;
   selectedDeviceId: string | null;
+  selectedFacingMode: VideoFacingModeEnum | null;
   start: (constraintsOverride?: MediaStreamConstraints) => Promise<MediaStream | null>;
   status: CameraStatus;
   stop: () => void;
   stream: MediaStream | null;
   switchDevice: (
     deviceId: string,
+    constraints?: MediaTrackConstraints,
+  ) => Promise<MediaStream | null>;
+  switchFacingMode: (
+    facingMode: VideoFacingModeEnum,
     constraints?: MediaTrackConstraints,
   ) => Promise<MediaStream | null>;
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -145,13 +159,17 @@ export interface UseMediaRecorderResult {
   chunks: Blob[];
   error: MediaRecorderError | null;
   file: File | null;
+  isAudioMuted: boolean;
   isSupported: boolean;
   mimeType: string | null;
+  muteAudio: () => void;
   pause: () => void;
   recorder: MediaRecorder | null;
   reset: () => void;
   resume: () => void;
+  setAudioMuted: (muted: boolean) => void;
   start: (streamOverride?: MediaStream) => MediaRecorder | null;
   status: RecordingStatus;
   stop: () => void;
+  unmuteAudio: () => void;
 }

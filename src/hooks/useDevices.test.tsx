@@ -34,5 +34,14 @@ describe('useDevices', () => {
     });
     expect(result.current.audioInputs).toHaveLength(1);
     expect(result.current.videoInputs[0]?.label).toBe('Front Camera');
+    expect(result.current.devicesById['camera-1']).toMatchObject({
+      deviceId: 'camera-1',
+      kind: 'videoinput',
+      label: 'Front Camera',
+    });
+    expect(result.current.devicesByType.video).toHaveLength(1);
+    expect(result.current.devicesByType.audio).toHaveLength(1);
+    expect(result.current.counts.video).toBe(1);
+    expect(result.current.counts.audio).toBe(1);
   });
 });

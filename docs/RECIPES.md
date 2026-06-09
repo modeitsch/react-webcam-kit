@@ -181,6 +181,28 @@ const back = await camera.start({
 
 Use `switchDevice(deviceId)` when the user selected a device from `useDevices()`.
 
+For front/back mobile camera controls, use `switchFacingMode()` instead of tracking a specific
+hardware ID:
+
+```tsx
+await camera.switchFacingMode('environment');
+await camera.switchFacingMode('user');
+```
+
+## Mute Recording Audio
+
+`muteAudio()` disables audio tracks on the stream passed to `useMediaRecorder()`. It does not change
+the preview element's `muted` prop.
+
+```tsx
+<button type="button" onClick={recorder.muteAudio}>
+  Mute mic
+</button>
+<button type="button" onClick={recorder.unmuteAudio}>
+  Unmute mic
+</button>
+```
+
 ## Stop Cleanly On Modal Close
 
 ```tsx

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- Added `switchFacingMode()` for front/back camera switching with ideal `facingMode` constraints.
+- Added `selectedFacingMode` to `useWebcam()`.
+- Added `devicesById`, `devicesByType`, and `counts` to `useDevices()`.
+- Added `muteAudio()`, `unmuteAudio()`, `setAudioMuted()`, and `isAudioMuted` to
+  `useMediaRecorder()`.
+- Updated docs and site copy for camera switching, richer device metadata, and recording audio mute
+  controls.
+
 ## 0.2.0
 
 - Added `useObjectUrl()` for safe Blob and MediaSource preview URLs.

@@ -82,6 +82,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   const [chunks, setChunks] = useState<Blob[]>([]);
   const [error, setError] = useState<MediaRecorderError | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
   const [status, setStatus] = useState<RecordingStatus>(
     isMediaRecorderSupported() ? 'idle' : 'unsupported',
@@ -111,6 +112,24 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   }, []);
 
   const cancel = reset;
+
+  const setAudioMuted = useCallback((muted: boolean) => {
+    const currentStream = recorderRef.current?.stream ?? optionsRef.current.stream;
+
+    currentStream?.getAudioTracks().forEach((track) => {
+      track.enabled = !muted;
+    });
+
+    setIsAudioMuted(muted);
+  }, []);
+
+  const muteAudio = useCallback(() => {
+    setAudioMuted(true);
+  }, [setAudioMuted]);
+
+  const unmuteAudio = useCallback(() => {
+    setAudioMuted(false);
+  }, [setAudioMuted]);
 
   const start = useCallback((streamOverride?: MediaStream) => {
     if (!isMediaRecorderSupported()) {
@@ -290,16 +309,20 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     chunks,
     error,
     file,
+    isAudioMuted,
     isSupported,
     mimeType,
+    muteAudio,
     pause,
     get recorder() {
       return recorderRef.current ?? recorder;
     },
     reset,
     resume,
+    setAudioMuted,
     start,
     status,
     stop,
+    unmuteAudio,
   };
 }

@@ -54,9 +54,15 @@ class MockMediaRecorder extends EventTarget {
 const OriginalMediaRecorder = globalThis.MediaRecorder;
 
 function createStream() {
+  const audioTrack = {
+    enabled: true,
+  };
+
   return {
+    audioTrack,
+    getAudioTracks: () => [audioTrack],
     getTracks: () => [],
-  } as unknown as MediaStream;
+  } as unknown as MediaStream & { audioTrack: { enabled: boolean } };
 }
 
 describe('useMediaRecorder', () => {
@@ -278,6 +284,34 @@ describe('useMediaRecorder', () => {
     expect(result.current.file).toBeNull();
     expect(result.current.chunks).toEqual([]);
     expect(onStop).not.toHaveBeenCalled();
+  });
+
+  it('mutes and unmutes audio tracks on the current recording stream', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const stream = createStream();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        stream,
+      }),
+    );
+
+    act(() => {
+      result.current.start();
+      result.current.muteAudio();
+    });
+
+    expect(stream.audioTrack.enabled).toBe(false);
+    expect(result.current.isAudioMuted).toBe(true);
+
+    act(() => {
+      result.current.unmuteAudio();
+    });
+
+    expect(stream.audioTrack.enabled).toBe(true);
+    expect(result.current.isAudioMuted).toBe(false);
   });
 
   it('reports unsupported environments', () => {

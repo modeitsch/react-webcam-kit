@@ -1,6 +1,6 @@
 {
   "name": "react-webcam-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A modern React camera component and hooks toolkit for webcam preview, capture, and device control.",
   "license": "MIT",
   "author": "modeitsch",

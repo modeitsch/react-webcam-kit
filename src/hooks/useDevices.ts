@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { normalizeMediaError } from '../errors/normalizeMediaError';
 import type { CameraError, UseDevicesResult } from '../types';
@@ -30,6 +30,24 @@ export function useDevices(): UseDevicesResult {
     'unknown',
   );
   const [videoInputs, setVideoInputs] = useState<MediaDeviceInfo[]>([]);
+  const devicesById = useMemo(
+    () =>
+      [...audioInputs, ...videoInputs].reduce<Record<string, MediaDeviceInfo>>(
+        (devices, device) => {
+          devices[device.deviceId] = device;
+          return devices;
+        },
+        {},
+      ),
+    [audioInputs, videoInputs],
+  );
+  const devicesByType = useMemo(
+    () => ({
+      audio: audioInputs,
+      video: videoInputs,
+    }),
+    [audioInputs, videoInputs],
+  );
 
   const refresh = useCallback(async () => {
     if (!hasMediaDevices()) {
@@ -76,6 +94,12 @@ export function useDevices(): UseDevicesResult {
 
   return {
     audioInputs,
+    counts: {
+      audio: audioInputs.length,
+      video: videoInputs.length,
+    },
+    devicesById,
+    devicesByType,
     error,
     permission,
     refresh,

@@ -107,6 +107,40 @@ describe('useWebcam', () => {
     expect(result.current.selectedDeviceId).toBe('camera-2');
   });
 
+  it('switches cameras with an ideal facingMode constraint', async () => {
+    const first = createStream();
+    const second = createStream();
+    const getUserMedia = vi
+      .fn()
+      .mockResolvedValueOnce(first.stream)
+      .mockResolvedValueOnce(second.stream);
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia,
+      },
+    });
+
+    const { result } = renderHook(() => useWebcam({ audio: true, startOnMount: false }));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      await result.current.switchFacingMode('environment', { width: { ideal: 1280 } });
+    });
+
+    expect(first.videoTrackStop).toHaveBeenCalledTimes(1);
+    expect(getUserMedia).toHaveBeenLastCalledWith({
+      audio: true,
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+      },
+    });
+    expect(result.current.selectedFacingMode).toBe('environment');
+  });
+
   it('restarts the stream when audio or video constraints change', async () => {
     const first = createStream();
     const second = createStream();

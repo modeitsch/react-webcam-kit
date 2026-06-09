@@ -22,6 +22,10 @@ export interface WebcamHandle {
     deviceId: string,
     constraints?: MediaTrackConstraints,
   ) => Promise<MediaStream | null>;
+  switchFacingMode: (
+    facingMode: VideoFacingModeEnum,
+    constraints?: MediaTrackConstraints,
+  ) => Promise<MediaStream | null>;
   video: HTMLVideoElement | null;
 }
 
@@ -166,6 +170,7 @@ export const Webcam = forwardRef<WebcamHandle, WebcamProps>(function Webcam(prop
         return webcam.stream;
       },
       switchDevice: webcam.switchDevice,
+      switchFacingMode: webcam.switchFacingMode,
       get video() {
         return webcam.videoRef.current;
       },

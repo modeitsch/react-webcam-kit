@@ -17,7 +17,7 @@ const featureItems = [
   },
   {
     title: 'Hook-first control',
-    body: 'useWebcam() exposes stream status, device switching, teardown, screenshots, and permission-aware error state.',
+    body: 'useWebcam() exposes stream status, device and facing-mode switching, teardown, screenshots, and permission-aware error state.',
   },
   {
     title: 'Production capture',
@@ -25,7 +25,7 @@ const featureItems = [
   },
   {
     title: 'Recording helper',
-    body: 'Record the active stream with bitrate controls, browser MIME selection, pause/resume, chunks, and final Blob output.',
+    body: 'Record the active stream with bitrate controls, browser MIME selection, pause/resume, audio mute, chunks, and final Blob output.',
   },
 ];
 
@@ -35,10 +35,10 @@ const apiRows = [
     'Preview component with capture, switching, lifecycle callbacks, and video prop passthrough.',
   ],
   ['useWebcam()', 'Composable stream lifecycle hook for custom camera interfaces.'],
-  ['useDevices()', 'Enumerates media devices and refreshes when hardware changes.'],
+  ['useDevices()', 'Enumerates media devices with grouped arrays, maps, counts, and refresh.'],
   [
     'useMediaRecorder()',
-    'Records a MediaStream with MIME, bitrate, chunk, pause, and Blob controls.',
+    'Records a MediaStream with MIME, bitrate, chunk, pause, mute, Blob, and File controls.',
   ],
   ['getSupportedMimeType()', 'Finds the first recorder MIME type supported by the browser.'],
   ['captureFrame()', 'Low-level canvas, Data URL, and Blob capture utility.'],
@@ -51,6 +51,7 @@ const capabilityItems = [
   'Record video streams with bitrate controls, cancel, Blob, and File output',
   'Preview recorded Blobs with safe object URL cleanup',
   'Switch cameras by exact device ID after users choose a device',
+  'Switch front and back cameras by ideal facing mode',
   'Start, stop, restart, disable, and unmount streams with predictable cleanup',
   'Separate local preview mute from microphone tracks',
   'Apply advanced video track constraints when the browser and device support them',
@@ -105,7 +106,7 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.2.0</dt>
+              <dt>0.3.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
@@ -139,6 +140,7 @@ function App() {
           <div className="demo-shell__controls">
             <span>getScreenshotBlob()</span>
             <span>switchDevice()</span>
+            <span>switchFacingMode()</span>
             <span>onStop()</span>
           </div>
         </div>

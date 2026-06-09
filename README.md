@@ -13,14 +13,14 @@ experience.
 
 - `<Webcam />` preview component with imperative capture methods
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
-- `useDevices()` hook for camera and microphone enumeration
+- `useDevices()` hook for camera and microphone enumeration, maps, and counts
 - `useMediaRecorder()` hook for typed video recording and Blob output
 - `useObjectUrl()` hook for safe Blob previews
 - `downloadBlob()` helper for recording and screenshot downloads
 - Recorder `cancel()`, `fileName`, `fileType`, and File output for retry/save flows
 - Recorder and playback MIME support helpers
 - Data URL, Blob, canvas, and ImageData capture utilities
-- Exact `deviceId` switching and advanced track constraints
+- Exact `deviceId`, front/back `facingMode` switching, and advanced track constraints
 - Predictable stream cleanup on stop, restart, switch, disable, and unmount
 - Typed media errors for permission, device, security, and browser support states
 - ESM, CommonJS, and TypeScript declaration output
@@ -149,6 +149,9 @@ output size and browser behavior.
 
 Use `cancel()` when the user wants to discard a recording and retry without creating a final Blob.
 
+Use `muteAudio()` and `unmuteAudio()` to toggle microphone tracks during recording without changing
+the preview element.
+
 ## Build A Custom UI With `useWebcam`
 
 ```tsx
@@ -229,6 +232,13 @@ export function DevicePicker() {
 }
 ```
 
+For front/back mobile camera flows, use `switchFacingMode()`:
+
+```tsx
+await camera.switchFacingMode('environment');
+await camera.switchFacingMode('user');
+```
+
 ## Advanced Camera Controls
 
 Browsers expose hardware-specific controls through `MediaStreamTrack.applyConstraints()`. Use
@@ -298,17 +308,18 @@ and `disablePictureInPicture`.
 
 ### `WebcamHandle`
 
-| Method                                 | Purpose                                      |
-| -------------------------------------- | -------------------------------------------- |
-| `start()`                              | Request a stream.                            |
-| `stop()`                               | Stop tracks and clear the video element.     |
-| `switchDevice(deviceId, constraints?)` | Restart with an exact camera device ID.      |
-| `applyVideoConstraints(constraints)`   | Apply constraints to the active video track. |
-| `getScreenshot(options?)`              | Return a Data URL or `null`.                 |
-| `getScreenshotBlob(options?)`          | Return a `Blob` or `null`.                   |
-| `getCanvas(options?)`                  | Return a canvas or `null`.                   |
-| `stream`                               | Current `MediaStream`, if active.            |
-| `video`                                | Current `HTMLVideoElement`, if mounted.      |
+| Method                                 | Purpose                                       |
+| -------------------------------------- | --------------------------------------------- |
+| `start()`                              | Request a stream.                             |
+| `stop()`                               | Stop tracks and clear the video element.      |
+| `switchDevice(deviceId, constraints?)` | Restart with an exact camera device ID.       |
+| `switchFacingMode(mode, constraints?)` | Restart with an ideal front/back camera mode. |
+| `applyVideoConstraints(constraints)`   | Apply constraints to the active video track.  |
+| `getScreenshot(options?)`              | Return a Data URL or `null`.                  |
+| `getScreenshotBlob(options?)`          | Return a `Blob` or `null`.                    |
+| `getCanvas(options?)`                  | Return a canvas or `null`.                    |
+| `stream`                               | Current `MediaStream`, if active.             |
+| `video`                                | Current `HTMLVideoElement`, if mounted.       |
 
 ### `useWebcam()`
 
@@ -336,7 +347,8 @@ state, and normalized errors.
 
 ### `useDevices()`
 
-`useDevices()` returns `videoInputs`, `audioInputs`, `permission`, `error`, and `refresh()`.
+`useDevices()` returns `videoInputs`, `audioInputs`, `devicesById`, `devicesByType`, `counts`,
+`permission`, `error`, and `refresh()`.
 
 ### `captureFrame()`
 

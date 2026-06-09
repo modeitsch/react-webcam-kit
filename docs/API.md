@@ -79,6 +79,10 @@ interface WebcamHandle {
   start(): Promise<MediaStream | null>;
   stop(): void;
   switchDevice(deviceId: string, constraints?: MediaTrackConstraints): Promise<MediaStream | null>;
+  switchFacingMode(
+    facingMode: VideoFacingModeEnum,
+    constraints?: MediaTrackConstraints,
+  ): Promise<MediaStream | null>;
   readonly stream: MediaStream | null;
   readonly video: HTMLVideoElement | null;
 }
@@ -112,35 +116,41 @@ const camera = useWebcam({ audio: false, startOnMount: false });
 
 ### Result
 
-| Field                   | Type                                            | Description                                  |
-| ----------------------- | ----------------------------------------------- | -------------------------------------------- |
-| `videoRef`              | `RefObject<HTMLVideoElement \| null>`           | Attach to your video element.                |
-| `status`                | `CameraStatus`                                  | Current lifecycle state.                     |
-| `permission`            | `PermissionState \| 'unsupported' \| 'unknown'` | Camera permission state when available.      |
-| `error`                 | `CameraError \| null`                           | Last normalized error.                       |
-| `stream`                | `MediaStream \| null`                           | Current media stream.                        |
-| `devices`               | `MediaDeviceInfo[]`                             | Last enumerated devices.                     |
-| `selectedDeviceId`      | `string \| null`                                | Last device ID passed to `switchDevice`.     |
-| `start`                 | function                                        | Request media.                               |
-| `stop`                  | function                                        | Stop tracks and clear the video element.     |
-| `restart`               | function                                        | Stop then start.                             |
-| `switchDevice`          | function                                        | Restart with an exact camera device ID.      |
-| `refreshDevices`        | function                                        | Refresh device enumeration.                  |
-| `applyVideoConstraints` | function                                        | Apply constraints to the active video track. |
-| `getCanvas`             | function                                        | Capture a canvas.                            |
-| `getScreenshot`         | function                                        | Capture a Data URL.                          |
-| `getScreenshotBlob`     | function                                        | Capture a Blob.                              |
+| Field                   | Type                                            | Description                                   |
+| ----------------------- | ----------------------------------------------- | --------------------------------------------- |
+| `videoRef`              | `RefObject<HTMLVideoElement \| null>`           | Attach to your video element.                 |
+| `status`                | `CameraStatus`                                  | Current lifecycle state.                      |
+| `permission`            | `PermissionState \| 'unsupported' \| 'unknown'` | Camera permission state when available.       |
+| `error`                 | `CameraError \| null`                           | Last normalized error.                        |
+| `stream`                | `MediaStream \| null`                           | Current media stream.                         |
+| `devices`               | `MediaDeviceInfo[]`                             | Last enumerated devices.                      |
+| `selectedDeviceId`      | `string \| null`                                | Last device ID passed to `switchDevice`.      |
+| `selectedFacingMode`    | `VideoFacingModeEnum \| null`                   | Last mode passed to `switchFacingMode`.       |
+| `start`                 | function                                        | Request media.                                |
+| `stop`                  | function                                        | Stop tracks and clear the video element.      |
+| `restart`               | function                                        | Stop then start.                              |
+| `switchDevice`          | function                                        | Restart with an exact camera device ID.       |
+| `switchFacingMode`      | function                                        | Restart with an ideal front/back camera mode. |
+| `refreshDevices`        | function                                        | Refresh device enumeration.                   |
+| `applyVideoConstraints` | function                                        | Apply constraints to the active video track.  |
+| `getCanvas`             | function                                        | Capture a canvas.                             |
+| `getScreenshot`         | function                                        | Capture a Data URL.                           |
+| `getScreenshotBlob`     | function                                        | Capture a Blob.                               |
 
 ## `useDevices()`
 
 `useDevices()` is a small hook for device selection UIs.
 
 ```tsx
-const { videoInputs, audioInputs, permission, error, refresh } = useDevices();
+const { videoInputs, audioInputs, devicesById, devicesByType, counts, permission, error, refresh } =
+  useDevices();
 ```
 
 Device labels are often empty until the user grants camera permission. Render a generic label before
 permission is granted.
+
+Use `devicesById` for fast lookup after a user selects a device ID, `devicesByType.video` and
+`devicesByType.audio` for grouped UIs, and `counts.video` or `counts.audio` for compact controls.
 
 ## `useMediaRecorder(options)`
 
@@ -179,6 +189,7 @@ const recorder = useMediaRecorder({
 | `status`           | `RecordingStatus`            | Current recorder state.                               |
 | `isSupported`      | `boolean`                    | Whether `MediaRecorder` exists in this browser.       |
 | `mimeType`         | `string \| null`             | Selected supported MIME type.                         |
+| `isAudioMuted`     | `boolean`                    | Whether recorder audio tracks are currently disabled. |
 | `chunks`           | `Blob[]`                     | Non-empty recorded chunks.                            |
 | `blob`             | `Blob \| null`               | Final Blob after `stop()`.                            |
 | `file`             | `File \| null`               | Final File when `fileName` is provided.               |
@@ -187,6 +198,9 @@ const recorder = useMediaRecorder({
 | `start`            | function                     | Start recording.                                      |
 | `stop`             | function                     | Stop recording and assemble the Blob.                 |
 | `cancel`           | function                     | Stop and discard the active recording.                |
+| `muteAudio`        | function                     | Disable audio tracks on the current stream.           |
+| `unmuteAudio`      | function                     | Re-enable audio tracks on the current stream.         |
+| `setAudioMuted`    | function                     | Set audio track enabled state from a boolean.         |
 | `pause` / `resume` | functions                    | Pause or resume when supported by the recorder state. |
 | `reset`            | function                     | Clear chunks, Blob, and error state.                  |
 

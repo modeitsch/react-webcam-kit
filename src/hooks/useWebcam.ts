@@ -94,6 +94,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     'unknown',
   );
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [selectedFacingMode, setSelectedFacingMode] = useState<VideoFacingModeEnum | null>(null);
   const [status, setStatus] = useState<CameraStatus>('idle');
   const [, setStream] = useState<MediaStream | null>(null);
   const constraintsKey = JSON.stringify({
@@ -238,12 +239,29 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const switchDevice = useCallback(
     async (deviceId: string, constraints: MediaTrackConstraints = {}) => {
       setSelectedDeviceId(deviceId);
+      setSelectedFacingMode(null);
       stop();
       return start({
         ...(options.audio ? { audio: options.audioConstraints ?? true } : {}),
         video: {
           ...constraints,
           deviceId: { exact: deviceId },
+        },
+      });
+    },
+    [options.audio, options.audioConstraints, start, stop],
+  );
+
+  const switchFacingMode = useCallback(
+    async (facingMode: VideoFacingModeEnum, constraints: MediaTrackConstraints = {}) => {
+      setSelectedDeviceId(null);
+      setSelectedFacingMode(facingMode);
+      stop();
+      return start({
+        ...(options.audio ? { audio: options.audioConstraints ?? true } : {}),
+        video: {
+          facingMode: { ideal: facingMode },
+          ...constraints,
         },
       });
     },
@@ -380,6 +398,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     refreshDevices,
     restart,
     selectedDeviceId,
+    selectedFacingMode,
     start,
     status,
     stop,
@@ -387,6 +406,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
       return streamRef.current;
     },
     switchDevice,
+    switchFacingMode,
     videoRef,
   };
 }
