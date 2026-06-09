@@ -194,7 +194,11 @@ should show this clearly.
 When switching cameras by device ID, the library should prefer:
 
 ```ts
-{ deviceId: { exact: deviceId } }
+{
+  deviceId: {
+    exact: deviceId;
+  }
+}
 ```
 
 This avoids a known class of Chrome issues where a plain string device ID does
