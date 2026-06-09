@@ -4,7 +4,7 @@
   "description": "A modern React camera component and hooks toolkit for webcam preview, capture, and device control.",
   "license": "MIT",
   "author": "modeitsch",
-  "homepage": "https://modeitsch.github.io/react-webcam-kit/",
+  "homepage": "https://modeitsch.com/react-webcam-kit/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/modeitsch/react-webcam-kit.git"
