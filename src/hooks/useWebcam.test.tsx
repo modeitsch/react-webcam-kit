@@ -106,4 +106,93 @@ describe('useWebcam', () => {
     });
     expect(result.current.selectedDeviceId).toBe('camera-2');
   });
+
+  it('restarts the stream when audio or video constraints change', async () => {
+    const first = createStream();
+    const second = createStream();
+    const getUserMedia = vi
+      .fn()
+      .mockResolvedValueOnce(first.stream)
+      .mockResolvedValueOnce(second.stream);
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia,
+      },
+    });
+
+    const { rerender, result } = renderHook(
+      ({ audio }: { audio: boolean }) =>
+        useWebcam({
+          audio,
+          videoConstraints: { width: { ideal: 640 } },
+        }),
+      {
+        initialProps: { audio: false },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+
+    rerender({ audio: true });
+
+    await waitFor(() => {
+      expect(getUserMedia).toHaveBeenCalledTimes(2);
+    });
+    expect(first.videoTrackStop).toHaveBeenCalledTimes(1);
+    expect(getUserMedia).toHaveBeenLastCalledWith({
+      audio: true,
+      video: { width: { ideal: 640 } },
+    });
+  });
+
+  it('calls onStop when an active stream is cleaned up on unmount', async () => {
+    const active = createStream();
+    const onStop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue(active.stream),
+      },
+    });
+
+    const { result, unmount } = renderHook(() => useWebcam({ onStop }));
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+    unmount();
+
+    expect(active.videoTrackStop).toHaveBeenCalledTimes(1);
+    expect(onStop).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies advanced constraints to the active video track', async () => {
+    const active = createStream();
+    const applyConstraints = vi.fn().mockResolvedValue(undefined);
+    Object.assign(active.videoTrack, { applyConstraints });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue(active.stream),
+      },
+    });
+
+    const { result } = renderHook(() => useWebcam());
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+    await act(async () => {
+      await result.current.applyVideoConstraints({
+        advanced: [{ torch: true } as MediaTrackConstraintSet],
+      });
+    });
+
+    expect(applyConstraints).toHaveBeenCalledWith({
+      advanced: [{ torch: true }],
+    });
+  });
 });

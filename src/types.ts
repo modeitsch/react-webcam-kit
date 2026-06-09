@@ -80,6 +80,7 @@ export interface UseWebcamOptions {
 }
 
 export interface UseWebcamResult {
+  applyVideoConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
   devices: MediaDeviceInfo[];
   error: CameraError | null;
   getCanvas: (options?: ScreenshotOptions) => HTMLCanvasElement | null;

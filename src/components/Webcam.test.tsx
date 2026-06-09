@@ -70,6 +70,7 @@ describe('Webcam', () => {
     expect(ref.current?.video).toBeInstanceOf(HTMLVideoElement);
     expect(typeof ref.current?.getScreenshot).toBe('function');
     expect(typeof ref.current?.getScreenshotBlob).toBe('function');
+    expect(typeof ref.current?.applyVideoConstraints).toBe('function');
   });
 
   it('supports the render-prop getScreenshot compatibility API', async () => {

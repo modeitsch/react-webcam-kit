@@ -120,6 +120,18 @@ select the intended camera:
 }
 ```
 
+## Advanced Track Constraints
+
+Use `applyVideoConstraints()` when the browser exposes advanced camera capabilities such as torch,
+zoom, focus distance, or exposure controls. Browser support varies, so feature-detect with the
+underlying video track before relying on a capability.
+
+```tsx
+await camera.applyVideoConstraints({
+  advanced: [{ torch: true } as MediaTrackConstraintSet],
+});
+```
+
 ## Compatibility With `react-webcam`
 
 `react-webcam-kit` keeps the familiar component shape:
@@ -145,12 +157,27 @@ It also adds:
 - `useWebcam`
 - `useDevices`
 - `getScreenshotBlob`
+- `applyVideoConstraints`
 - `startOnMount`
 - `enabled`
 - `onStart`
 - `onStop`
 - `onError`
 - `onPermissionChange`
+
+## Upstream Issue And PR Coverage
+
+The first release intentionally absorbs several common `react-webcam` pain points:
+
+| Upstream signal                                               | Covered by                                                     |
+| ------------------------------------------------------------- | -------------------------------------------------------------- |
+| PR #411 / issue #400: screenshot Blob output                  | `getScreenshotBlob()`                                          |
+| PR #404 / issue #395: separate stream audio from preview mute | native `muted` prop plus `audio` stream control                |
+| issue #410: teardown callback                                 | `onStop` on manual stop, disable, restart, switch, and unmount |
+| issue #413 / PR #227: reliable camera switching               | `switchDevice()` with exact `deviceId` constraints             |
+| issue #387: audio prop changes do not restart stream          | stream restart on audio and constraint changes                 |
+| issue #189: flash/torch access                                | `applyVideoConstraints()` escape hatch                         |
+| PR #208 / issue #187: unsupported/no-camera error path        | normalized `onError` / `onUserMediaError`                      |
 
 ## Development
 

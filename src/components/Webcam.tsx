@@ -11,6 +11,7 @@ import type {
 } from '../types';
 
 export interface WebcamHandle {
+  applyVideoConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
   getCanvas: (options?: ScreenshotOptions) => HTMLCanvasElement | null;
   getScreenshot: (options?: ScreenshotOptions) => string | null;
   getScreenshotBlob: (options?: ScreenshotOptions) => Promise<Blob | null>;
@@ -134,6 +135,7 @@ export const Webcam = forwardRef<WebcamHandle, WebcamProps>(function Webcam(prop
   useImperativeHandle(
     ref,
     () => ({
+      applyVideoConstraints: webcam.applyVideoConstraints,
       getCanvas: (captureOptions) =>
         webcam.getCanvas({
           height: minScreenshotHeight,
