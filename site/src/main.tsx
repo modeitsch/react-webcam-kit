@@ -6,7 +6,7 @@ import './styles.css';
 const navItems = [
   { href: '#install', label: 'Install' },
   { href: '#api', label: 'API' },
-  { href: '#browser', label: 'Browser' },
+  { href: '#capabilities', label: 'Capabilities' },
   { href: '#quality', label: 'Quality' },
 ];
 
@@ -36,15 +36,15 @@ const apiRows = [
   ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
 ];
 
-const browserItems = [
-  'Blob screenshot support',
-  'Separate preview muted from stream audio',
-  'Teardown callback after stopped streams',
-  'Exact deviceId switching',
-  'Audio and constraint restart behavior',
-  'Torch, zoom, and advanced track constraints when supported',
-  'Unsupported browser and no-camera errors',
-  'Canvas privacy blocking returns null instead of crashing',
+const capabilityItems = [
+  'Preview camera streams in React without owning raw media setup on every screen',
+  'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
+  'Switch cameras by exact device ID after users choose a device',
+  'Start, stop, restart, disable, and unmount streams with predictable cleanup',
+  'Separate local preview mute from microphone tracks',
+  'Apply advanced video track constraints when the browser and device support them',
+  'Read typed permission, device, and browser support states',
+  'Handle blocked canvas capture and unavailable cameras without crashing the UI',
 ];
 
 const qualityItems = [
@@ -187,17 +187,17 @@ function App() {
         </div>
       </section>
 
-      <section className="section coverage" id="browser">
+      <section className="section coverage" id="capabilities">
         <div>
-          <p className="section-label">Browser behavior</p>
-          <h2>Built around the camera problems real React apps run into.</h2>
+          <p className="section-label">Capabilities</p>
+          <h2>The core camera flows your app needs, exposed as clean React APIs.</h2>
           <p>
-            Camera APIs vary across devices, permissions, and privacy settings. The package exposes
-            the right state and fallback points so your app can respond cleanly.
+            Use the component for a fast preview, or compose the hooks and capture utilities into a
+            camera experience that matches your product.
           </p>
         </div>
         <ul className="coverage-list">
-          {browserItems.map((item) => (
+          {capabilityItems.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
