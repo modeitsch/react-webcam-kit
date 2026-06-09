@@ -3,108 +3,214 @@ import { createRoot } from 'react-dom/client';
 
 import './styles.css';
 
-const compatibilityItems = [
-  'Familiar <Webcam /> component',
-  'Ref and render-prop capture',
-  'Native video props pass-through',
-  'Migration guide for existing apps',
+const navItems = [
+  { href: '#install', label: 'Install' },
+  { href: '#api', label: 'API' },
+  { href: '#coverage', label: 'Coverage' },
+  { href: '#quality', label: 'Quality' },
 ];
 
-const upgradeItems = [
-  'Hook-based stream lifecycle',
-  'Data URL and Blob screenshots',
-  'Exact device switching',
-  'Typed browser error states',
+const featureItems = [
+  {
+    title: 'Drop-in component',
+    body: 'A familiar <Webcam /> API with ref capture, render-prop access, mirrored preview, and native video props.',
+  },
+  {
+    title: 'Hook-first control',
+    body: 'useWebcam() exposes stream status, device switching, teardown, screenshots, and permission-aware error state.',
+  },
+  {
+    title: 'Production capture',
+    body: 'Capture Data URLs or Blobs, tune screenshot quality, target custom dimensions, and clean up streams predictably.',
+  },
 ];
 
-const roadmapItems = [
-  'Recorder helper hook',
-  'Migration recipes',
-  'Live camera demos',
-  'Device test matrix',
+const apiRows = [
+  [
+    '<Webcam />',
+    'Preview component with capture, switching, lifecycle callbacks, and video prop passthrough.',
+  ],
+  ['useWebcam()', 'Composable stream lifecycle hook for custom camera interfaces.'],
+  ['useDevices()', 'Enumerates media devices and refreshes when hardware changes.'],
+  ['captureFrame()', 'Low-level canvas, Data URL, and Blob capture utility.'],
+  ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
+];
+
+const issueCoverage = [
+  'Blob screenshot support',
+  'Separate preview muted from stream audio',
+  'onStop teardown callback',
+  'Exact deviceId switching',
+  'Audio and constraint restart behavior',
+  'Torch, zoom, and advanced track constraints',
+  'Unsupported browser and no-camera errors',
+  'Request deduplication on rerenders',
+];
+
+const qualityItems = [
+  'TypeScript declarations',
+  'ESM and CommonJS output',
+  'React 18 and 19 peer range',
+  'Vitest coverage for public behavior',
+  'ESLint 9 and Prettier checks',
+  'GitHub Pages workflow',
 ];
 
 function App() {
   return (
     <main>
-      <section className="hero">
+      <header className="topbar" aria-label="Site header">
+        <a className="brand" href="#top" aria-label="react-webcam-kit home">
+          <span className="brand__mark" aria-hidden="true" />
+          <span>react-webcam-kit</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          {navItems.map((item) => (
+            <a href={item.href} key={item.href}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <section className="hero" id="top">
         <div className="hero__content">
           <p className="eyebrow">React camera toolkit</p>
-          <h1>react-webcam-kit</h1>
+          <h1>Webcam APIs that feel maintained.</h1>
           <p className="lead">
-            A polished webcam component and hooks package for React apps that need camera preview,
-            capture, device switching, and reliable media cleanup.
+            A professional React package for camera preview, screenshots, device switching, media
+            cleanup, and typed browser errors.
           </p>
           <div className="actions" aria-label="Primary actions">
             <a className="button button--primary" href="#install">
-              Install
+              <span aria-hidden="true">npm</span>
+              Install package
             </a>
-            <a className="button button--secondary" href="#roadmap">
-              Roadmap
+            <a className="button button--secondary" href="#api">
+              View API
             </a>
           </div>
+          <dl className="hero__stats" aria-label="Package status">
+            <div>
+              <dt>0.1.0</dt>
+              <dd>Initial release</dd>
+            </div>
+            <div>
+              <dt>5</dt>
+              <dd>Public exports</dd>
+            </div>
+            <div>
+              <dt>MIT</dt>
+              <dd>Open license</dd>
+            </div>
+          </dl>
         </div>
 
-        <div className="camera-panel" aria-label="Camera package preview">
-          <div className="camera-panel__top">
-            <span className="status-dot" />
-            <span>Preview ready</span>
+        <div className="demo-shell" aria-label="Webcam package preview">
+          <div className="demo-shell__bar">
+            <span className="live-dot" />
+            <span>Camera ready</span>
+            <span>1920 x 1080</span>
           </div>
           <div className="camera-frame">
-            <div className="lens-mark lens-mark--one" />
-            <div className="lens-mark lens-mark--two" />
+            <div className="focus-box">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="subject subject--left" />
+            <div className="subject subject--right" />
             <div className="scan-line" />
           </div>
-          <div className="camera-panel__bottom">
+          <div className="demo-shell__controls">
             <span>getScreenshotBlob()</span>
-            <span>useDevices()</span>
+            <span>switchDevice()</span>
+            <span>onStop()</span>
           </div>
         </div>
       </section>
 
-      <section className="section section--grid" id="why">
-        <article>
-          <p className="section-label">Migration friendly</p>
-          <h2>Built for the apps already using webcam components.</h2>
-          <ul>
-            {compatibilityItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </article>
-
-        <article>
-          <p className="section-label">Modern core</p>
-          <h2>Designed around the browser problems teams actually hit.</h2>
-          <ul>
-            {upgradeItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </article>
+      <section className="section section--features" id="why">
+        <div className="section__intro">
+          <p className="section-label">Why this package</p>
+          <h2>Designed for apps that need camera behavior to be boringly reliable.</h2>
+        </div>
+        <div className="feature-grid">
+          {featureItems.map((item) => (
+            <article className="feature-card" key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="section install" id="install">
         <div>
           <p className="section-label">Install</p>
-          <h2>Core package API is in place.</h2>
+          <h2>Small package, familiar React ergonomics.</h2>
           <p>
-            The package includes a compatibility component, hook APIs, Blob capture, strict
-            TypeScript, tests, dual package output, and this GitHub Pages site.
+            Install the package, import the component or hooks, and keep the browser media lifecycle
+            under your control.
           </p>
         </div>
-        <pre>
-          <code>npm install react-webcam-kit</code>
-        </pre>
+        <div className="code-stack" aria-label="Installation and usage examples">
+          <pre>
+            <code>npm install react-webcam-kit</code>
+          </pre>
+          <pre>
+            <code>{`import Webcam from 'react-webcam-kit';
+
+<Webcam
+  audio={false}
+  screenshotFormat="image/jpeg"
+  onUserMedia={(stream) => console.log(stream.id)}
+/>`}</code>
+          </pre>
+        </div>
       </section>
 
-      <section className="section roadmap" id="roadmap">
-        <p className="section-label">Roadmap</p>
-        <h2>Next up: deeper examples and browser coverage.</h2>
-        <div className="roadmap__items">
-          {roadmapItems.map((item, index) => (
-            <div className="roadmap__item" key={item}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
+      <section className="section api" id="api">
+        <div className="section__intro">
+          <p className="section-label">API surface</p>
+          <h2>Component compatibility with lower-level hooks when you need them.</h2>
+        </div>
+        <div className="api-table" role="table" aria-label="Public package API">
+          {apiRows.map(([name, description]) => (
+            <div className="api-row" role="row" key={name}>
+              <strong role="cell">{name}</strong>
+              <span role="cell">{description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section coverage" id="coverage">
+        <div>
+          <p className="section-label">Issue coverage</p>
+          <h2>Includes the fixes developers kept asking webcam packages for.</h2>
+          <p>
+            The first release folds common community pain points into the core API, with tests
+            around the behavior that matters most.
+          </p>
+        </div>
+        <ul className="coverage-list">
+          {issueCoverage.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="section quality" id="quality">
+        <div className="section__intro">
+          <p className="section-label">Package quality</p>
+          <h2>Set up like a library people can trust.</h2>
+        </div>
+        <div className="quality-grid">
+          {qualityItems.map((item) => (
+            <div className="quality-item" key={item}>
+              <span aria-hidden="true" />
               <strong>{item}</strong>
             </div>
           ))}
