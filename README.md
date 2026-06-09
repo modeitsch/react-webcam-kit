@@ -1,5 +1,7 @@
 # react-webcam-kit
 
+![react-webcam-kit logo](./docs/assets/logo.svg)
+
 A modern React camera toolkit for webcam preview, screenshots, device switching, and safe media
 stream cleanup.
 
@@ -12,6 +14,7 @@ experience.
 - `<Webcam />` preview component with imperative capture methods
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
 - `useDevices()` hook for camera and microphone enumeration
+- `useMediaRecorder()` hook for typed video recording and Blob output
 - Data URL, Blob, canvas, and ImageData capture utilities
 - Exact `deviceId` switching and advanced track constraints
 - Predictable stream cleanup on stop, restart, switch, disable, and unmount
@@ -95,6 +98,36 @@ if (blob) {
   console.log(file);
 }
 ```
+
+## Record Video
+
+```tsx
+import { useMediaRecorder, useWebcam } from 'react-webcam-kit';
+
+export function CameraRecorder() {
+  const camera = useWebcam({ audio: true });
+  const recorder = useMediaRecorder({
+    stream: camera.stream,
+    videoBitsPerSecond: 1_500_000,
+  });
+
+  return (
+    <>
+      <video ref={camera.videoRef} autoPlay playsInline muted />
+      <button type="button" onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+      {recorder.blob ? <video src={URL.createObjectURL(recorder.blob)} controls /> : null}
+    </>
+  );
+}
+```
+
+Use `videoBitsPerSecond`, `audioBitsPerSecond`, `bitsPerSecond`, `mimeType`, and `timeslice` to tune
+output size and browser behavior.
 
 ## Build A Custom UI With `useWebcam`
 
@@ -220,7 +253,7 @@ case screenshot methods return `null`; show a fallback instead of assuming captu
 ### `<Webcam />`
 
 | Prop                                         | Type                              | Purpose                                                     |
-| -------------------------------------------- | --------------------------------- | ----------------------------------------------------------- | ------------- | --------------------------------- |
+| -------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
 | `audio`                                      | `boolean`                         | Request microphone tracks when `true`. Defaults to `false`. |
 | `audioConstraints`                           | `MediaStreamConstraints['audio']` | Custom audio constraints.                                   |
 | `videoConstraints`                           | `MediaStreamConstraints['video']` | Custom video constraints.                                   |
@@ -228,7 +261,7 @@ case screenshot methods return `null`; show a fallback instead of assuming captu
 | `startOnMount`                               | `boolean`                         | Start automatically on mount. Defaults to `true`.           |
 | `mirrored`                                   | `boolean`                         | Mirror the preview and captured frames.                     |
 | `muted`                                      | native video prop                 | Mute the preview element without changing stream audio.     |
-| `screenshotFormat`                           | `'image/webp' \\                  | 'image/png' \\                                              | 'image/jpeg'` | Default screenshot output format. |
+| `screenshotFormat`                           | `ScreenshotFormat`                | Default screenshot output format.                           |
 | `screenshotQuality`                          | `number`                          | Default screenshot quality for JPEG/WebP.                   |
 | `forceScreenshotSourceSize`                  | `boolean`                         | Capture from the video source dimensions.                   |
 | `imageSmoothing`                             | `boolean`                         | Enable or disable canvas image smoothing.                   |
@@ -258,6 +291,25 @@ and `disablePictureInPicture`.
 | `video`                                | Current `HTMLVideoElement`, if mounted.      |
 
 ### `useWebcam()`
+
+### `useMediaRecorder()`
+
+`useMediaRecorder(options)` records an active `MediaStream` and returns recording state, chunks, the
+final Blob, and controls for `start`, `stop`, `pause`, `resume`, and `reset`.
+
+```tsx
+const recorder = useMediaRecorder({
+  stream: camera.stream,
+  mimeType: 'video/webm',
+  videoBitsPerSecond: 1_500_000,
+  timeslice: 1000,
+});
+```
+
+### `getSupportedMimeType()`
+
+`getSupportedMimeType(candidates?)` returns the first MIME type supported by the current browser, or
+`null` when `MediaRecorder` is unavailable.
 
 `useWebcam(options)` returns stream state, a `videoRef`, capture methods, device controls, permission
 state, and normalized errors.

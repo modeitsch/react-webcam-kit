@@ -106,3 +106,48 @@ export interface WebcamChildrenProps {
 }
 
 export type WebcamVideoProps = Omit<ComponentPropsWithoutRef<'video'>, 'children' | 'ref'>;
+
+export type RecordingStatus =
+  | 'idle'
+  | 'recording'
+  | 'paused'
+  | 'stopping'
+  | 'stopped'
+  | 'unsupported'
+  | 'error';
+
+export interface MediaRecorderError {
+  name: string;
+  message: string;
+  cause?: unknown;
+}
+
+export interface UseMediaRecorderOptions {
+  audioBitsPerSecond?: number;
+  bitsPerSecond?: number;
+  mimeType?: string;
+  onDataAvailable?: (chunk: BlobEvent) => void;
+  onError?: (error: MediaRecorderError) => void;
+  onPause?: () => void;
+  onResume?: () => void;
+  onStart?: (recorder: MediaRecorder) => void;
+  onStop?: (blob: Blob, chunks: Blob[]) => void;
+  stream?: MediaStream | null;
+  timeslice?: number;
+  videoBitsPerSecond?: number;
+}
+
+export interface UseMediaRecorderResult {
+  blob: Blob | null;
+  chunks: Blob[];
+  error: MediaRecorderError | null;
+  isSupported: boolean;
+  mimeType: string | null;
+  pause: () => void;
+  recorder: MediaRecorder | null;
+  reset: () => void;
+  resume: () => void;
+  start: (streamOverride?: MediaStream) => MediaRecorder | null;
+  status: RecordingStatus;
+  stop: () => void;
+}

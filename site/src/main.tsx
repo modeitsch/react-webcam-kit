@@ -23,6 +23,10 @@ const featureItems = [
     title: 'Production capture',
     body: 'Capture Data URLs or Blobs, tune screenshot quality, target custom dimensions, and clean up streams predictably.',
   },
+  {
+    title: 'Recording helper',
+    body: 'Record the active stream with bitrate controls, browser MIME selection, pause/resume, chunks, and final Blob output.',
+  },
 ];
 
 const apiRows = [
@@ -32,6 +36,11 @@ const apiRows = [
   ],
   ['useWebcam()', 'Composable stream lifecycle hook for custom camera interfaces.'],
   ['useDevices()', 'Enumerates media devices and refreshes when hardware changes.'],
+  [
+    'useMediaRecorder()',
+    'Records a MediaStream with MIME, bitrate, chunk, pause, and Blob controls.',
+  ],
+  ['getSupportedMimeType()', 'Finds the first recorder MIME type supported by the browser.'],
   ['captureFrame()', 'Low-level canvas, Data URL, and Blob capture utility.'],
   ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
 ];
@@ -39,6 +48,7 @@ const apiRows = [
 const capabilityItems = [
   'Preview camera streams in React without owning raw media setup on every screen',
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
+  'Record video streams with bitrate controls and final Blob output',
   'Switch cameras by exact device ID after users choose a device',
   'Start, stop, restart, disable, and unmount streams with predictable cleanup',
   'Separate local preview mute from microphone tracks',
@@ -93,11 +103,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.1.0</dt>
-              <dd>Initial release</dd>
+              <dt>0.1.1</dt>
+              <dd>Latest release</dd>
             </div>
             <div>
-              <dt>5</dt>
+              <dt>8</dt>
               <dd>Public exports</dd>
             </div>
             <div>

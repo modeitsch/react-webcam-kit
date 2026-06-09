@@ -59,9 +59,24 @@ Treat `null` as a normal browser outcome and show a fallback message.
 
 ## Audio Recording
 
-This package manages preview and capture. It does not currently ship a recorder abstraction. If you
-record with `MediaRecorder`, pass `audio: true` when you need microphone tracks, and tune recorder
-bitrate options in your app to control output size.
+`useMediaRecorder()` records the active `MediaStream` with the browser `MediaRecorder` API. Pass
+`audio: true` to `useWebcam()` when recordings should include microphone tracks.
+
+Use bitrate options to control output size:
+
+```tsx
+useMediaRecorder({
+  stream: camera.stream,
+  videoBitsPerSecond: 1_000_000,
+  audioBitsPerSecond: 96_000,
+});
+```
+
+Safari and Chromium-based browsers do not support the same recording MIME types. Use
+`getSupportedMimeType()` before setting a custom `mimeType`.
+
+Short recordings can produce empty chunks in some browsers. The hook ignores empty chunks and builds
+the final Blob from non-empty data.
 
 ## Multiple Cameras At Once
 

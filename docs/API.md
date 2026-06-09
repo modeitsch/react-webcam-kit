@@ -1,6 +1,6 @@
 # API Reference
 
-This package exports a component, two hooks, a capture utility, an error normalizer, and shared
+This package exports a component, hooks, capture utilities, error helpers, and shared
 TypeScript types.
 
 ## Exports
@@ -9,6 +9,8 @@ TypeScript types.
 export { Webcam } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
+export { useMediaRecorder } from 'react-webcam-kit';
+export { getSupportedMimeType } from 'react-webcam-kit';
 export { captureFrame } from 'react-webcam-kit';
 export { normalizeMediaError } from 'react-webcam-kit';
 ```
@@ -134,6 +136,59 @@ const { videoInputs, audioInputs, permission, error, refresh } = useDevices();
 Device labels are often empty until the user grants camera permission. Render a generic label before
 permission is granted.
 
+## `useMediaRecorder(options)`
+
+Use this hook to record an active `MediaStream` and produce a Blob.
+
+```tsx
+const recorder = useMediaRecorder({
+  stream: camera.stream,
+  videoBitsPerSecond: 1_500_000,
+  audioBitsPerSecond: 96_000,
+  timeslice: 1000,
+});
+```
+
+### Options
+
+| Option                 | Type                  | Description                                                                       |
+| ---------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| `stream`               | `MediaStream \| null` | Stream to record. You can also pass a stream to `start(stream)`.                  |
+| `mimeType`             | `string`              | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
+| `bitsPerSecond`        | `number`              | Total target bitrate.                                                             |
+| `videoBitsPerSecond`   | `number`              | Target video bitrate.                                                             |
+| `audioBitsPerSecond`   | `number`              | Target audio bitrate.                                                             |
+| `timeslice`            | `number`              | Optional chunk interval passed to `MediaRecorder.start()`.                        |
+| `onDataAvailable`      | `(event) => void`     | Runs for every recorder chunk.                                                    |
+| `onStart` / `onStop`   | callbacks             | Runs when recording starts and when the final Blob is assembled.                  |
+| `onPause` / `onResume` | callbacks             | Runs on recorder pause and resume.                                                |
+| `onError`              | `(error) => void`     | Runs with normalized recorder errors.                                             |
+
+### Result
+
+| Field              | Type                         | Description                                           |
+| ------------------ | ---------------------------- | ----------------------------------------------------- |
+| `status`           | `RecordingStatus`            | Current recorder state.                               |
+| `isSupported`      | `boolean`                    | Whether `MediaRecorder` exists in this browser.       |
+| `mimeType`         | `string \| null`             | Selected supported MIME type.                         |
+| `chunks`           | `Blob[]`                     | Non-empty recorded chunks.                            |
+| `blob`             | `Blob \| null`               | Final Blob after `stop()`.                            |
+| `error`            | `MediaRecorderError \| null` | Last recorder error.                                  |
+| `recorder`         | `MediaRecorder \| null`      | Current browser recorder instance.                    |
+| `start`            | function                     | Start recording.                                      |
+| `stop`             | function                     | Stop recording and assemble the Blob.                 |
+| `pause` / `resume` | functions                    | Pause or resume when supported by the recorder state. |
+| `reset`            | function                     | Clear chunks, Blob, and error state.                  |
+
+## `getSupportedMimeType(candidates?)`
+
+Returns the first MIME type supported by `MediaRecorder.isTypeSupported()`, or `null` when recording
+is unavailable.
+
+```ts
+const mimeType = getSupportedMimeType(['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4']);
+```
+
 ## `captureFrame(video, options)`
 
 Captures a frame from a ready `HTMLVideoElement`.
@@ -163,6 +218,15 @@ type CameraStatus =
 
 type ScreenshotFormat = 'image/webp' | 'image/png' | 'image/jpeg';
 
+type RecordingStatus =
+  | 'idle'
+  | 'recording'
+  | 'paused'
+  | 'stopping'
+  | 'stopped'
+  | 'unsupported'
+  | 'error';
+
 interface CameraError {
   name: string;
   message: string;
@@ -174,6 +238,12 @@ interface CameraError {
     | 'overconstrained'
     | 'security'
     | 'unknown';
+  cause?: unknown;
+}
+
+interface MediaRecorderError {
+  name: string;
+  message: string;
   cause?: unknown;
 }
 ```

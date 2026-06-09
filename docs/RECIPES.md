@@ -61,6 +61,80 @@ if (blob) {
 }
 ```
 
+## Record A Short Video
+
+```tsx
+import { useMediaRecorder, useWebcam } from 'react-webcam-kit';
+
+export function Recorder() {
+  const camera = useWebcam({ audio: true });
+  const recorder = useMediaRecorder({
+    stream: camera.stream,
+    timeslice: 1000,
+    videoBitsPerSecond: 1_500_000,
+    audioBitsPerSecond: 96_000,
+  });
+
+  return (
+    <>
+      <video ref={camera.videoRef} autoPlay playsInline muted />
+      <button type="button" onClick={() => recorder.start()}>
+        Start recording
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop recording
+      </button>
+      {recorder.blob ? <video src={URL.createObjectURL(recorder.blob)} controls /> : null}
+    </>
+  );
+}
+```
+
+## Reduce Recorded File Size
+
+Use recorder bitrate options instead of recording at the browser default bitrate.
+
+```tsx
+const recorder = useMediaRecorder({
+  stream: camera.stream,
+  videoBitsPerSecond: 900_000,
+  audioBitsPerSecond: 64_000,
+});
+```
+
+For very small uploads, combine lower recorder bitrate with lower camera constraints:
+
+```tsx
+const camera = useWebcam({
+  audio: true,
+  videoConstraints: {
+    width: { ideal: 854 },
+    height: { ideal: 480 },
+    frameRate: { ideal: 24 },
+  },
+});
+```
+
+## Choose A Recording MIME Type
+
+Browser support varies. Select the first type the browser supports.
+
+```tsx
+import { getSupportedMimeType, useMediaRecorder } from 'react-webcam-kit';
+
+const mimeType = getSupportedMimeType([
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+  'video/mp4',
+]);
+
+const recorder = useMediaRecorder({
+  mimeType: mimeType ?? undefined,
+  stream: camera.stream,
+});
+```
+
 ## Capture A Square Avatar
 
 ```tsx
