@@ -51,7 +51,7 @@ describe('Webcam', () => {
     });
   });
 
-  it('exposes compatibility ref methods', async () => {
+  it('exposes imperative ref methods', async () => {
     const stream = createStream();
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,
@@ -73,7 +73,7 @@ describe('Webcam', () => {
     expect(typeof ref.current?.applyVideoConstraints).toBe('function');
   });
 
-  it('supports the render-prop getScreenshot compatibility API', async () => {
+  it('supports the render-prop getScreenshot API', async () => {
     render(
       <Webcam startOnMount={false}>
         {({ getScreenshot }) => (

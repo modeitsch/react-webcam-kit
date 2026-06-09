@@ -4,6 +4,14 @@
   "description": "A modern React camera component and hooks toolkit for webcam preview, capture, and device control.",
   "license": "MIT",
   "author": "modeitsch",
+  "homepage": "https://modeitsch.github.io/react-webcam-kit/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/modeitsch/react-webcam-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/modeitsch/react-webcam-kit/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -20,7 +28,11 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md",
+    "docs/API.md",
+    "docs/BROWSER-NOTES.md",
+    "docs/RECIPES.md"
   ],
   "keywords": [
     "react",
@@ -41,6 +53,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
+    "audit": "npm audit --audit-level=high",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

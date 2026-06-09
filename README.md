@@ -1,27 +1,23 @@
 # react-webcam-kit
 
-A modern React camera toolkit for webcam preview, still capture, device switching, and media
-stream lifecycle control.
+A modern React camera toolkit for webcam preview, screenshots, device switching, and safe media
+stream cleanup.
 
-`react-webcam-kit` is designed for production React apps that need browser camera access
-without fighting low-level `getUserMedia` behavior on every screen. The package is TypeScript-first,
-React 18/19 ready, and built around a small hook-based core with a migration-friendly component API.
+`react-webcam-kit` gives React apps a small, typed API over browser camera behavior. Use the
+component when you want a ready preview, or the hooks and utilities when you need a custom camera
+experience.
 
-## Why This Package
+## Highlights
 
-Browser webcam work looks simple until it reaches real devices. Camera permissions, mobile browser
-constraints, screenshot quality, stream cleanup, and device switching all have sharp edges.
-
-This package aims to make those flows predictable:
-
-- React component and hook APIs
-- Strict TypeScript types
-- Safe stream cleanup
-- Data URL and Blob screenshot capture
-- Camera and microphone device enumeration
-- Mobile-friendly constraints guidance
-- ESM and CommonJS builds
-- No required runtime dependencies beyond React
+- `<Webcam />` preview component with imperative capture methods
+- `useWebcam()` hook for stream lifecycle, permission state, and device switching
+- `useDevices()` hook for camera and microphone enumeration
+- Data URL, Blob, canvas, and ImageData capture utilities
+- Exact `deviceId` switching and advanced track constraints
+- Predictable stream cleanup on stop, restart, switch, disable, and unmount
+- Typed media errors for permission, device, security, and browser support states
+- ESM, CommonJS, and TypeScript declaration output
+- No required runtime dependency beyond React
 
 ## Install
 
@@ -43,11 +39,21 @@ yarn add react-webcam-kit
 import { Webcam } from 'react-webcam-kit';
 
 export function CameraPreview() {
-  return <Webcam audio={false} mirrored />;
+  return (
+    <Webcam
+      audio={false}
+      mirrored
+      videoConstraints={{
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: { ideal: 'user' },
+      }}
+    />
+  );
 }
 ```
 
-## Screenshot By Ref
+## Capture A Screenshot
 
 ```tsx
 import { useRef } from 'react';
@@ -62,7 +68,11 @@ export function AvatarCapture() {
       <button
         type="button"
         onClick={() => {
-          const image = webcamRef.current?.getScreenshot();
+          const image = webcamRef.current?.getScreenshot({
+            width: 512,
+            height: 512,
+            quality: 0.9,
+          });
           console.log(image);
         }}
       >
@@ -73,111 +83,200 @@ export function AvatarCapture() {
 }
 ```
 
-## Screenshot As Blob
+## Capture A Blob
 
 ```tsx
 const blob = await webcamRef.current?.getScreenshotBlob({
   format: 'image/png',
 });
+
+if (blob) {
+  const file = new File([blob], 'avatar.png', { type: blob.type });
+  console.log(file);
+}
 ```
 
-## Hook Usage
+## Build A Custom UI With `useWebcam`
 
 ```tsx
 import { useWebcam } from 'react-webcam-kit';
 
 export function CameraControls() {
-  const camera = useWebcam({ audio: false });
+  const camera = useWebcam({
+    audio: false,
+    onError(error) {
+      console.error(error.type, error.message);
+    },
+  });
 
   return (
     <>
       <video ref={camera.videoRef} autoPlay playsInline muted />
+
       <button type="button" onClick={() => void camera.start()}>
         Start
       </button>
       <button type="button" onClick={camera.stop}>
         Stop
       </button>
+      <button
+        type="button"
+        onClick={() => {
+          const image = camera.getScreenshot();
+          console.log(image);
+        }}
+      >
+        Capture
+      </button>
+
+      <p>Status: {camera.status}</p>
     </>
   );
 }
 ```
 
-## Camera Switching
+## Switch Cameras
+
+Use `useDevices()` to list devices, then pass a video input device ID to `switchDevice()`.
 
 ```tsx
-await camera.switchDevice('device-id-from-enumerate-devices');
-```
+import { useDevices, useWebcam } from 'react-webcam-kit';
 
-`switchDevice` uses an exact `deviceId` constraint so Chrome and mobile browsers are more likely to
-select the intended camera:
+export function DevicePicker() {
+  const devices = useDevices();
+  const camera = useWebcam({ audio: false });
 
-```ts
-{
-  deviceId: {
-    exact: deviceId;
-  }
+  return (
+    <select
+      value={camera.selectedDeviceId ?? ''}
+      onChange={(event) => {
+        void camera.switchDevice(event.target.value);
+      }}
+    >
+      <option value="" disabled>
+        Select a camera
+      </option>
+      {devices.videoInputs.map((device) => (
+        <option key={device.deviceId} value={device.deviceId}>
+          {device.label || 'Camera'}
+        </option>
+      ))}
+    </select>
+  );
 }
 ```
 
-## Advanced Track Constraints
+`switchDevice()` uses an exact `deviceId` constraint:
 
-Use `applyVideoConstraints()` when the browser exposes advanced camera capabilities such as torch,
-zoom, focus distance, or exposure controls. Browser support varies, so feature-detect with the
-underlying video track before relying on a capability.
-
-```tsx
-await camera.applyVideoConstraints({
-  advanced: [{ torch: true } as MediaTrackConstraintSet],
-});
+```ts
+{
+  video: {
+    deviceId: { exact: deviceId },
+  },
+}
 ```
 
-## Compatibility With `react-webcam`
+## Advanced Camera Controls
 
-`react-webcam-kit` keeps the familiar component shape:
+Browsers expose hardware-specific controls through `MediaStreamTrack.applyConstraints()`. Use
+`applyVideoConstraints()` for capabilities such as torch, zoom, focus distance, or exposure when the
+device supports them.
 
-- `audio`
-- `audioConstraints`
-- `videoConstraints`
-- `mirrored`
-- `screenshotFormat`
-- `screenshotQuality`
-- `forceScreenshotSourceSize`
-- `imageSmoothing`
-- `minScreenshotWidth`
-- `minScreenshotHeight`
-- `disablePictureInPicture`
-- `onUserMedia`
-- `onUserMediaError`
-- `getScreenshot({ width, height })`
-- render-prop children receiving `{ getScreenshot }`
+```tsx
+const [track] = camera.stream?.getVideoTracks() ?? [];
+const capabilities = track?.getCapabilities?.();
 
-It also adds:
+if (capabilities && 'torch' in capabilities) {
+  await camera.applyVideoConstraints({
+    advanced: [{ torch: true } as MediaTrackConstraintSet],
+  });
+}
+```
 
-- `useWebcam`
-- `useDevices`
-- `getScreenshotBlob`
-- `applyVideoConstraints`
-- `startOnMount`
-- `enabled`
-- `onStart`
-- `onStop`
-- `onError`
-- `onPermissionChange`
+## Browser Requirements
 
-## Upstream Issue And PR Coverage
+Camera access requires `navigator.mediaDevices.getUserMedia`. Browsers only expose it in secure
+contexts such as HTTPS and localhost.
 
-The first release intentionally absorbs several common `react-webcam` pain points:
+Mobile devices are sensitive to strict constraints. Prefer `ideal` values for width, height, and
+`facingMode` unless your app can gracefully handle `overconstrained` errors.
 
-| Upstream signal                                               | Covered by                                                     |
-| ------------------------------------------------------------- | -------------------------------------------------------------- |
-| PR #411 / issue #400: screenshot Blob output                  | `getScreenshotBlob()`                                          |
-| PR #404 / issue #395: separate stream audio from preview mute | native `muted` prop plus `audio` stream control                |
-| issue #410: teardown callback                                 | `onStop` on manual stop, disable, restart, switch, and unmount |
-| issue #413 / PR #227: reliable camera switching               | `switchDevice()` with exact `deviceId` constraints             |
-| issue #387: audio prop changes do not restart stream          | stream restart on audio and constraint changes                 |
-| issue #189: flash/torch access                                | `applyVideoConstraints()` escape hatch                         |
-| PR #208 / issue #187: unsupported/no-camera error path        | normalized `onError` / `onUserMediaError`                      |
+```tsx
+<Webcam
+  audio={false}
+  videoConstraints={{
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    facingMode: { ideal: 'environment' },
+  }}
+/>
+```
+
+Privacy-focused browsers and extensions may block canvas reads after drawing video frames. In that
+case screenshot methods return `null`; show a fallback instead of assuming capture always succeeds.
+
+## API Summary
+
+### `<Webcam />`
+
+| Prop                                         | Type                              | Purpose                                                     |
+| -------------------------------------------- | --------------------------------- | ----------------------------------------------------------- | ------------- | --------------------------------- |
+| `audio`                                      | `boolean`                         | Request microphone tracks when `true`. Defaults to `false`. |
+| `audioConstraints`                           | `MediaStreamConstraints['audio']` | Custom audio constraints.                                   |
+| `videoConstraints`                           | `MediaStreamConstraints['video']` | Custom video constraints.                                   |
+| `enabled`                                    | `boolean`                         | Start or stop the stream declaratively.                     |
+| `startOnMount`                               | `boolean`                         | Start automatically on mount. Defaults to `true`.           |
+| `mirrored`                                   | `boolean`                         | Mirror the preview and captured frames.                     |
+| `muted`                                      | native video prop                 | Mute the preview element without changing stream audio.     |
+| `screenshotFormat`                           | `'image/webp' \\                  | 'image/png' \\                                              | 'image/jpeg'` | Default screenshot output format. |
+| `screenshotQuality`                          | `number`                          | Default screenshot quality for JPEG/WebP.                   |
+| `forceScreenshotSourceSize`                  | `boolean`                         | Capture from the video source dimensions.                   |
+| `imageSmoothing`                             | `boolean`                         | Enable or disable canvas image smoothing.                   |
+| `minScreenshotWidth` / `minScreenshotHeight` | `number`                          | Minimum captured frame size.                                |
+| `fallback`                                   | `ReactNode` or render function    | Rendered for unsupported, denied, or error states.          |
+| `onStart` / `onStop`                         | callbacks                         | Stream lifecycle events.                                    |
+| `onUserMedia` / `onUserMediaError`           | callbacks                         | Media request events.                                       |
+| `onError`                                    | callback                          | Normalized media error event.                               |
+| `onPermissionChange`                         | callback                          | Permission state updates.                                   |
+| `onDevicesChanged`                           | callback                          | Device list updates.                                        |
+
+The component also accepts ordinary `<video>` props such as `className`, `style`, `poster`, `muted`,
+and `disablePictureInPicture`.
+
+### `WebcamHandle`
+
+| Method                                 | Purpose                                      |
+| -------------------------------------- | -------------------------------------------- |
+| `start()`                              | Request a stream.                            |
+| `stop()`                               | Stop tracks and clear the video element.     |
+| `switchDevice(deviceId, constraints?)` | Restart with an exact camera device ID.      |
+| `applyVideoConstraints(constraints)`   | Apply constraints to the active video track. |
+| `getScreenshot(options?)`              | Return a Data URL or `null`.                 |
+| `getScreenshotBlob(options?)`          | Return a `Blob` or `null`.                   |
+| `getCanvas(options?)`                  | Return a canvas or `null`.                   |
+| `stream`                               | Current `MediaStream`, if active.            |
+| `video`                                | Current `HTMLVideoElement`, if mounted.      |
+
+### `useWebcam()`
+
+`useWebcam(options)` returns stream state, a `videoRef`, capture methods, device controls, permission
+state, and normalized errors.
+
+### `useDevices()`
+
+`useDevices()` returns `videoInputs`, `audioInputs`, `permission`, `error`, and `refresh()`.
+
+### `captureFrame()`
+
+`captureFrame(video, options)` captures from a ready `HTMLVideoElement` and can return a Data URL,
+Blob, canvas, or ImageData.
+
+## More Documentation
+
+- [API Reference](./docs/API.md)
+- [Recipes](./docs/RECIPES.md)
+- [Browser Notes](./docs/BROWSER-NOTES.md)
+- [Security Policy](./SECURITY.md)
 
 ## Development
 
@@ -193,33 +292,8 @@ Available scripts:
 - `npm run lint` - run ESLint with zero warnings
 - `npm run format:check` - verify Prettier formatting
 - `npm run test` - run Vitest
+- `npm run audit` - check production and development dependencies for high severity advisories
 - `npm run verify` - run the full release gate
-
-## Roadmap
-
-- MediaRecorder helper hook
-- More browser/device recipes
-- Dedicated migration guide examples
-- Interactive documentation site demos
-
-## Browser Requirements
-
-Camera access requires `navigator.mediaDevices.getUserMedia`, which is available only in secure
-contexts such as HTTPS and localhost. Browser support and device behavior vary, especially on mobile
-Safari, Android devices, and privacy-hardened browsers.
-
-For mobile devices, prefer `ideal` constraints over strict high-resolution constraints:
-
-```tsx
-<Webcam
-  audio={false}
-  videoConstraints={{
-    width: { ideal: 1280 },
-    height: { ideal: 720 },
-    facingMode: { ideal: 'environment' },
-  }}
-/>
-```
 
 ## Publishing
 

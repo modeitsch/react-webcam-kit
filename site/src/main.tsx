@@ -6,14 +6,14 @@ import './styles.css';
 const navItems = [
   { href: '#install', label: 'Install' },
   { href: '#api', label: 'API' },
-  { href: '#coverage', label: 'Coverage' },
+  { href: '#browser', label: 'Browser' },
   { href: '#quality', label: 'Quality' },
 ];
 
 const featureItems = [
   {
     title: 'Drop-in component',
-    body: 'A familiar <Webcam /> API with ref capture, render-prop access, mirrored preview, and native video props.',
+    body: 'A focused <Webcam /> component with ref capture, render-prop access, mirrored preview, and native video props.',
   },
   {
     title: 'Hook-first control',
@@ -36,15 +36,15 @@ const apiRows = [
   ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
 ];
 
-const issueCoverage = [
+const browserItems = [
   'Blob screenshot support',
   'Separate preview muted from stream audio',
-  'onStop teardown callback',
+  'Teardown callback after stopped streams',
   'Exact deviceId switching',
   'Audio and constraint restart behavior',
-  'Torch, zoom, and advanced track constraints',
+  'Torch, zoom, and advanced track constraints when supported',
   'Unsupported browser and no-camera errors',
-  'Request deduplication on rerenders',
+  'Canvas privacy blocking returns null instead of crashing',
 ];
 
 const qualityItems = [
@@ -54,6 +54,7 @@ const qualityItems = [
   'Vitest coverage for public behavior',
   'ESLint 9 and Prettier checks',
   'GitHub Pages workflow',
+  'Security policy and dependency monitoring',
 ];
 
 function App() {
@@ -174,7 +175,7 @@ function App() {
       <section className="section api" id="api">
         <div className="section__intro">
           <p className="section-label">API surface</p>
-          <h2>Component compatibility with lower-level hooks when you need them.</h2>
+          <h2>A component API for speed, hooks and utilities for full control.</h2>
         </div>
         <div className="api-table" role="table" aria-label="Public package API">
           {apiRows.map(([name, description]) => (
@@ -186,17 +187,17 @@ function App() {
         </div>
       </section>
 
-      <section className="section coverage" id="coverage">
+      <section className="section coverage" id="browser">
         <div>
-          <p className="section-label">Issue coverage</p>
-          <h2>Includes the fixes developers kept asking webcam packages for.</h2>
+          <p className="section-label">Browser behavior</p>
+          <h2>Built around the camera problems real React apps run into.</h2>
           <p>
-            The first release folds common community pain points into the core API, with tests
-            around the behavior that matters most.
+            Camera APIs vary across devices, permissions, and privacy settings. The package exposes
+            the right state and fallback points so your app can respond cleanly.
           </p>
         </div>
         <ul className="coverage-list">
-          {issueCoverage.map((item) => (
+          {browserItems.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
