@@ -48,7 +48,8 @@ const apiRows = [
 const capabilityItems = [
   'Preview camera streams in React without owning raw media setup on every screen',
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
-  'Record video streams with bitrate controls and final Blob output',
+  'Record video streams with bitrate controls, cancel, Blob, and File output',
+  'Preview recorded Blobs with safe object URL cleanup',
   'Switch cameras by exact device ID after users choose a device',
   'Start, stop, restart, disable, and unmount streams with predictable cleanup',
   'Separate local preview mute from microphone tracks',
@@ -64,6 +65,7 @@ const qualityItems = [
   'Vitest coverage for public behavior',
   'ESLint 9 and Prettier checks',
   'GitHub Pages workflow',
+  'Real browser smoke tests with fake media devices',
   'Security policy and dependency monitoring',
 ];
 
@@ -103,7 +105,7 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.1.1</dt>
+              <dt>0.2.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>

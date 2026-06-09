@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0
+
+- Added `useObjectUrl()` for safe Blob and MediaSource preview URLs.
+- Added `downloadBlob()` for recording and screenshot downloads.
+- Added recorder MIME helpers for video, audio, recorder support, and playback support checks.
+- Added `cancel()`, `fileName`, `fileType`, and `file` output to `useMediaRecorder()`.
+- Fixed recorder session isolation so late events from old recorders cannot affect new recordings.
+- Fixed active recorder reset behavior so reset stops and discards safely.
+- Fixed webcam cleanup so unmount uses the latest `onStop` callback.
+- Added Playwright browser smoke testing with fake media devices.
+- Removed the unnecessary `react-dom` peer dependency.
+- Updated recorder docs to avoid object URL leaks.
+
 ## 0.1.1
 
 - Added `useMediaRecorder()` for recording active media streams.

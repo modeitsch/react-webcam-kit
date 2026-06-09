@@ -6,13 +6,12 @@ import type {
   UseMediaRecorderOptions,
   UseMediaRecorderResult,
 } from '../types';
+import {
+  DEFAULT_VIDEO_RECORDER_MIME_TYPES,
+  getSupportedRecorderMimeTypes,
+} from '../recording/codecSupport';
 
-export const DEFAULT_RECORDER_MIME_TYPES = [
-  'video/webm;codecs=vp9,opus',
-  'video/webm;codecs=vp8,opus',
-  'video/webm',
-  'video/mp4',
-];
+export const DEFAULT_RECORDER_MIME_TYPES = DEFAULT_VIDEO_RECORDER_MIME_TYPES;
 
 function isMediaRecorderSupported() {
   return typeof MediaRecorder !== 'undefined';
@@ -43,11 +42,7 @@ function normalizeRecorderError(error: unknown): MediaRecorderError {
 }
 
 export function getSupportedMimeType(candidates = DEFAULT_RECORDER_MIME_TYPES) {
-  if (!isMediaRecorderSupported() || typeof MediaRecorder.isTypeSupported !== 'function') {
-    return null;
-  }
-
-  return candidates.find((candidate) => MediaRecorder.isTypeSupported(candidate)) ?? null;
+  return getSupportedRecorderMimeTypes(candidates)[0] ?? null;
 }
 
 function buildRecorderOptions(options: UseMediaRecorderOptions): MediaRecorderOptions {
@@ -61,13 +56,32 @@ function buildRecorderOptions(options: UseMediaRecorderOptions): MediaRecorderOp
   };
 }
 
+function resolveRecordingFileName(options: UseMediaRecorderOptions, blob: Blob) {
+  const rawName = typeof options.fileName === 'function' ? options.fileName() : options.fileName;
+
+  if (!rawName) {
+    return null;
+  }
+
+  const extension = options.fileType ?? blob.type.split('/')[1] ?? 'webm';
+
+  if (rawName.endsWith(`.${extension}`)) {
+    return rawName;
+  }
+
+  return `${rawName}.${extension}`;
+}
+
 export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMediaRecorderResult {
   const optionsRef = useRef(options);
+  const activeSessionIdRef = useRef<number | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const sessionIdRef = useRef(0);
   const chunksRef = useRef<Blob[]>([]);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [chunks, setChunks] = useState<Blob[]>([]);
   const [error, setError] = useState<MediaRecorderError | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
   const [status, setStatus] = useState<RecordingStatus>(
     isMediaRecorderSupported() ? 'idle' : 'unsupported',
@@ -79,12 +93,24 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   const mimeType = useMemo(() => options.mimeType ?? getSupportedMimeType(), [options.mimeType]);
 
   const reset = useCallback(() => {
+    const currentRecorder = recorderRef.current;
+
+    activeSessionIdRef.current = null;
     chunksRef.current = [];
+    recorderRef.current = null;
+    setRecorder(null);
     setChunks([]);
     setBlob(null);
+    setFile(null);
     setError(null);
     setStatus(isMediaRecorderSupported() ? 'idle' : 'unsupported');
+
+    if (currentRecorder && currentRecorder.state !== 'inactive') {
+      currentRecorder.stop();
+    }
   }, []);
+
+  const cancel = reset;
 
   const start = useCallback((streamOverride?: MediaStream) => {
     if (!isMediaRecorderSupported()) {
@@ -112,10 +138,21 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     }
 
     try {
-      recorderRef.current?.stop();
+      const previousRecorder = recorderRef.current;
+
+      if (previousRecorder && previousRecorder.state !== 'inactive') {
+        activeSessionIdRef.current = null;
+        previousRecorder.stop();
+      }
+
+      const sessionId = sessionIdRef.current + 1;
+      const sessionChunks: Blob[] = [];
+      sessionIdRef.current = sessionId;
+      activeSessionIdRef.current = sessionId;
       chunksRef.current = [];
       setChunks([]);
       setBlob(null);
+      setFile(null);
       setError(null);
 
       const nextRecorder = new MediaRecorder(stream, buildRecorderOptions(optionsRef.current));
@@ -123,17 +160,26 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       setRecorder(nextRecorder);
 
       nextRecorder.addEventListener('dataavailable', (event) => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
         optionsRef.current.onDataAvailable?.(event);
 
         if (event.data.size === 0) {
           return;
         }
 
-        chunksRef.current = [...chunksRef.current, event.data];
+        sessionChunks.push(event.data);
+        chunksRef.current = [...sessionChunks];
         setChunks(chunksRef.current);
       });
 
       nextRecorder.addEventListener('error', (event) => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
         const nextError = normalizeRecorderError(event.error);
         setError(nextError);
         setStatus('error');
@@ -141,29 +187,54 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
       });
 
       nextRecorder.addEventListener('pause', () => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
         setStatus('paused');
         optionsRef.current.onPause?.();
       });
 
       nextRecorder.addEventListener('resume', () => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
         setStatus('recording');
         optionsRef.current.onResume?.();
       });
 
       nextRecorder.addEventListener('start', () => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
         setStatus('recording');
         optionsRef.current.onStart?.(nextRecorder);
       });
 
       nextRecorder.addEventListener('stop', () => {
+        if (sessionId !== activeSessionIdRef.current) {
+          return;
+        }
+
+        activeSessionIdRef.current = null;
         const recordedType =
           nextRecorder.mimeType.length > 0 ? nextRecorder.mimeType : optionsRef.current.mimeType;
-        const recordedBlob = new Blob(chunksRef.current, {
+        const finalChunks = [...sessionChunks];
+        chunksRef.current = finalChunks;
+        const recordedBlob = new Blob(finalChunks, {
           type: recordedType ?? '',
         });
+        const fileName = resolveRecordingFileName(optionsRef.current, recordedBlob);
+        const recordedFile = fileName
+          ? new File([recordedBlob], fileName, { type: recordedBlob.type })
+          : null;
+        setChunks(finalChunks);
         setBlob(recordedBlob);
+        setFile(recordedFile);
         setStatus('stopped');
-        optionsRef.current.onStop?.(recordedBlob, chunksRef.current);
+        optionsRef.current.onStop?.(recordedBlob, finalChunks);
       });
 
       nextRecorder.start(optionsRef.current.timeslice);
@@ -215,8 +286,10 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
   return {
     blob,
+    cancel,
     chunks,
     error,
+    file,
     isSupported,
     mimeType,
     pause,

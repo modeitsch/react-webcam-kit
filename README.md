@@ -15,6 +15,10 @@ experience.
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
 - `useDevices()` hook for camera and microphone enumeration
 - `useMediaRecorder()` hook for typed video recording and Blob output
+- `useObjectUrl()` hook for safe Blob previews
+- `downloadBlob()` helper for recording and screenshot downloads
+- Recorder `cancel()`, `fileName`, `fileType`, and File output for retry/save flows
+- Recorder and playback MIME support helpers
 - Data URL, Blob, canvas, and ImageData capture utilities
 - Exact `deviceId` switching and advanced track constraints
 - Predictable stream cleanup on stop, restart, switch, disable, and unmount
@@ -102,14 +106,17 @@ if (blob) {
 ## Record Video
 
 ```tsx
-import { useMediaRecorder, useWebcam } from 'react-webcam-kit';
+import { downloadBlob, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
 
 export function CameraRecorder() {
   const camera = useWebcam({ audio: true });
   const recorder = useMediaRecorder({
+    fileName: 'camera-recording',
+    fileType: 'webm',
     stream: camera.stream,
     videoBitsPerSecond: 1_500_000,
   });
+  const playbackUrl = useObjectUrl(recorder.blob);
 
   return (
     <>
@@ -120,7 +127,18 @@ export function CameraRecorder() {
       <button type="button" onClick={recorder.stop}>
         Stop
       </button>
-      {recorder.blob ? <video src={URL.createObjectURL(recorder.blob)} controls /> : null}
+      <button
+        type="button"
+        disabled={!recorder.file}
+        onClick={() => {
+          if (recorder.file) {
+            downloadBlob(recorder.file);
+          }
+        }}
+      >
+        Download
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
     </>
   );
 }
@@ -128,6 +146,8 @@ export function CameraRecorder() {
 
 Use `videoBitsPerSecond`, `audioBitsPerSecond`, `bitsPerSecond`, `mimeType`, and `timeslice` to tune
 output size and browser behavior.
+
+Use `cancel()` when the user wants to discard a recording and retry without creating a final Blob.
 
 ## Build A Custom UI With `useWebcam`
 

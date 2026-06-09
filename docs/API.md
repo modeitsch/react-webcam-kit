@@ -10,7 +10,13 @@ export { Webcam } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
 export { useMediaRecorder } from 'react-webcam-kit';
+export { useObjectUrl } from 'react-webcam-kit';
+export { downloadBlob } from 'react-webcam-kit';
 export { getSupportedMimeType } from 'react-webcam-kit';
+export { getSupportedVideoMimeTypes } from 'react-webcam-kit';
+export { getSupportedAudioMimeTypes } from 'react-webcam-kit';
+export { isPlaybackMimeTypeSupported } from 'react-webcam-kit';
+export { isRecorderMimeTypeSupported } from 'react-webcam-kit';
 export { captureFrame } from 'react-webcam-kit';
 export { normalizeMediaError } from 'react-webcam-kit';
 ```
@@ -155,6 +161,8 @@ const recorder = useMediaRecorder({
 | ---------------------- | --------------------- | --------------------------------------------------------------------------------- |
 | `stream`               | `MediaStream \| null` | Stream to record. You can also pass a stream to `start(stream)`.                  |
 | `mimeType`             | `string`              | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
+| `fileName`             | `string` or function  | Optional base file name used to create `file` after `stop()`.                     |
+| `fileType`             | `string`              | Optional file extension used with `fileName`.                                     |
 | `bitsPerSecond`        | `number`              | Total target bitrate.                                                             |
 | `videoBitsPerSecond`   | `number`              | Target video bitrate.                                                             |
 | `audioBitsPerSecond`   | `number`              | Target audio bitrate.                                                             |
@@ -173,12 +181,36 @@ const recorder = useMediaRecorder({
 | `mimeType`         | `string \| null`             | Selected supported MIME type.                         |
 | `chunks`           | `Blob[]`                     | Non-empty recorded chunks.                            |
 | `blob`             | `Blob \| null`               | Final Blob after `stop()`.                            |
+| `file`             | `File \| null`               | Final File when `fileName` is provided.               |
 | `error`            | `MediaRecorderError \| null` | Last recorder error.                                  |
 | `recorder`         | `MediaRecorder \| null`      | Current browser recorder instance.                    |
 | `start`            | function                     | Start recording.                                      |
 | `stop`             | function                     | Stop recording and assemble the Blob.                 |
+| `cancel`           | function                     | Stop and discard the active recording.                |
 | `pause` / `resume` | functions                    | Pause or resume when supported by the recorder state. |
 | `reset`            | function                     | Clear chunks, Blob, and error state.                  |
+
+`cancel()` stops the active recorder and discards collected chunks. It does not create a final Blob
+and does not call `onStop`.
+
+## `useObjectUrl(source)`
+
+Creates an object URL for a `Blob` or `MediaSource` and revokes it automatically when the source
+changes or the component unmounts.
+
+```tsx
+const playbackUrl = useObjectUrl(recorder.blob);
+```
+
+## `downloadBlob(blob, fileName?)`
+
+Downloads a `Blob` or `File` by creating a temporary object URL and anchor.
+
+```ts
+if (recorder.file) {
+  downloadBlob(recorder.file);
+}
+```
 
 ## `getSupportedMimeType(candidates?)`
 
@@ -187,6 +219,15 @@ is unavailable.
 
 ```ts
 const mimeType = getSupportedMimeType(['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4']);
+```
+
+Additional MIME helpers:
+
+```ts
+const supportedVideoTypes = getSupportedVideoMimeTypes();
+const supportedAudioTypes = getSupportedAudioMimeTypes();
+const canRecordWebm = isRecorderMimeTypeSupported('video/webm');
+const canPlayWebm = isPlaybackMimeTypeSupported('video/webm');
 ```
 
 ## `captureFrame(video, options)`

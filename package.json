@@ -1,6 +1,6 @@
 {
   "name": "react-webcam-kit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A modern React camera component and hooks toolkit for webcam preview, capture, and device control.",
   "license": "MIT",
   "author": "modeitsch",
@@ -47,6 +47,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "browser:serve": "vite tests/browser --host 127.0.0.1 --port 4174",
     "clean": "rimraf dist coverage",
     "dev": "vite --host 0.0.0.0",
     "site:build": "vite build --config vite.site.config.ts",
@@ -57,17 +58,18 @@
     "lint": "eslint . --max-warnings=0",
     "audit": "npm audit --audit-level=high",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run test:browser && npm run build",
     "prepublishOnly": "npm run verify"
   },
   "peerDependencies": {
-    "react": ">=18.0.0 || >=19.0.0",
-    "react-dom": ">=18.0.0 || >=19.0.0"
+    "react": ">=18.0.0 || >=19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^25.9.2",

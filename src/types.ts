@@ -125,6 +125,8 @@ export interface MediaRecorderError {
 export interface UseMediaRecorderOptions {
   audioBitsPerSecond?: number;
   bitsPerSecond?: number;
+  fileName?: string | (() => string);
+  fileType?: string;
   mimeType?: string;
   onDataAvailable?: (chunk: BlobEvent) => void;
   onError?: (error: MediaRecorderError) => void;
@@ -139,8 +141,10 @@ export interface UseMediaRecorderOptions {
 
 export interface UseMediaRecorderResult {
   blob: Blob | null;
+  cancel: () => void;
   chunks: Blob[];
   error: MediaRecorderError | null;
+  file: File | null;
   isSupported: boolean;
   mimeType: string | null;
   pause: () => void;

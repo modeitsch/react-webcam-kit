@@ -317,7 +317,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
       setStream(null);
 
       if (currentStream) {
-        onStop?.();
+        optionsRef.current.onStop?.();
       }
     };
   }, []);

@@ -7,7 +7,18 @@ export {
   getSupportedMimeType,
   useMediaRecorder,
 } from './hooks/useMediaRecorder';
+export { useObjectUrl } from './hooks/useObjectUrl';
 export { useWebcam } from './hooks/useWebcam';
+export { downloadBlob } from './recording/downloadBlob';
+export {
+  DEFAULT_AUDIO_RECORDER_MIME_TYPES,
+  DEFAULT_VIDEO_RECORDER_MIME_TYPES,
+  getSupportedAudioMimeTypes,
+  getSupportedRecorderMimeTypes,
+  getSupportedVideoMimeTypes,
+  isPlaybackMimeTypeSupported,
+  isRecorderMimeTypeSupported,
+} from './recording/codecSupport';
 export type {
   CameraError,
   CameraStatus,

@@ -5,6 +5,7 @@ import { getSupportedMimeType, useMediaRecorder } from './useMediaRecorder';
 
 class MockMediaRecorder extends EventTarget {
   static isTypeSupported = vi.fn((mimeType: string) => mimeType === 'video/webm');
+  static stopDispatch: 'sync' | 'manual' = 'sync';
 
   mimeType: string;
   state: RecordingState = 'inactive';
@@ -16,7 +17,10 @@ class MockMediaRecorder extends EventTarget {
   });
   stop = vi.fn(() => {
     this.state = 'inactive';
-    this.dispatchEvent(new Event('stop'));
+
+    if (MockMediaRecorder.stopDispatch === 'sync') {
+      this.flushStop();
+    }
   });
   pause = vi.fn(() => {
     this.state = 'paused';
@@ -41,6 +45,10 @@ class MockMediaRecorder extends EventTarget {
     });
     this.dispatchEvent(event);
   }
+
+  flushStop() {
+    this.dispatchEvent(new Event('stop'));
+  }
 }
 
 const OriginalMediaRecorder = globalThis.MediaRecorder;
@@ -53,6 +61,7 @@ function createStream() {
 
 describe('useMediaRecorder', () => {
   afterEach(() => {
+    MockMediaRecorder.stopDispatch = 'sync';
     Object.defineProperty(globalThis, 'MediaRecorder', {
       configurable: true,
       value: OriginalMediaRecorder,
@@ -108,7 +117,7 @@ describe('useMediaRecorder', () => {
     expect(onStop).toHaveBeenCalledWith(result.current.blob, result.current.chunks);
   });
 
-  it('pauses, resumes, and resets recorder state', () => {
+  it('pauses, resumes, and resets recorder state after the recorder is inactive', () => {
     Object.defineProperty(globalThis, 'MediaRecorder', {
       configurable: true,
       value: MockMediaRecorder,
@@ -135,6 +144,140 @@ describe('useMediaRecorder', () => {
     expect(result.current.status).toBe('idle');
     expect(result.current.blob).toBeNull();
     expect(result.current.chunks).toEqual([]);
+  });
+
+  it('stops and discards an active recording when reset is called', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const onStop = vi.fn();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        onStop,
+        stream: createStream(),
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+      recorder?.emitChunk(new Blob(['discarded'], { type: 'video/webm' }));
+    });
+
+    expect(result.current.status).toBe('recording');
+
+    act(() => {
+      result.current.reset();
+    });
+
+    expect(recorder?.stop).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('idle');
+    expect(result.current.blob).toBeNull();
+    expect(result.current.chunks).toEqual([]);
+    expect(onStop).not.toHaveBeenCalled();
+  });
+
+  it('ignores late stop events from a recorder replaced by a new session', () => {
+    MockMediaRecorder.stopDispatch = 'manual';
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const onStop = vi.fn();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        onStop,
+        stream: createStream(),
+      }),
+    );
+
+    let firstRecorder: MockMediaRecorder | undefined;
+    let secondRecorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      firstRecorder = result.current.start() as unknown as MockMediaRecorder;
+      firstRecorder?.emitChunk(new Blob(['first'], { type: 'video/webm' }));
+      secondRecorder = result.current.start() as unknown as MockMediaRecorder;
+      secondRecorder?.emitChunk(new Blob(['second'], { type: 'video/webm' }));
+    });
+
+    expect(firstRecorder?.stop).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      firstRecorder?.flushStop();
+    });
+
+    expect(onStop).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('recording');
+    expect(result.current.blob).toBeNull();
+    expect(result.current.chunks).toHaveLength(1);
+
+    act(() => {
+      result.current.stop();
+      secondRecorder?.flushStop();
+    });
+
+    expect(result.current.status).toBe('stopped');
+    expect(result.current.blob).toBeInstanceOf(Blob);
+    expect(onStop).toHaveBeenCalledTimes(1);
+    expect(onStop).toHaveBeenCalledWith(result.current.blob, result.current.chunks);
+  });
+
+  it('creates a File from the final recording when fileName is provided', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        fileName: 'intro',
+        fileType: 'webm',
+        stream: createStream(),
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+      recorder?.emitChunk(new Blob(['chunk'], { type: 'video/webm' }));
+      result.current.stop();
+    });
+
+    expect(result.current.file).toBeInstanceOf(File);
+    expect(result.current.file?.name).toBe('intro.webm');
+    expect(result.current.file?.type).toBe('video/webm');
+  });
+
+  it('cancels an active recording without creating a blob or calling onStop', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const onStop = vi.fn();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        onStop,
+        stream: createStream(),
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+      recorder?.emitChunk(new Blob(['discarded'], { type: 'video/webm' }));
+      result.current.cancel();
+    });
+
+    expect(recorder?.stop).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('idle');
+    expect(result.current.blob).toBeNull();
+    expect(result.current.file).toBeNull();
+    expect(result.current.chunks).toEqual([]);
+    expect(onStop).not.toHaveBeenCalled();
   });
 
   it('reports unsupported environments', () => {

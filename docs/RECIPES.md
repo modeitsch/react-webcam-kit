@@ -64,16 +64,19 @@ if (blob) {
 ## Record A Short Video
 
 ```tsx
-import { useMediaRecorder, useWebcam } from 'react-webcam-kit';
+import { downloadBlob, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
 
 export function Recorder() {
   const camera = useWebcam({ audio: true });
   const recorder = useMediaRecorder({
+    fileName: 'camera-recording',
+    fileType: 'webm',
     stream: camera.stream,
     timeslice: 1000,
     videoBitsPerSecond: 1_500_000,
     audioBitsPerSecond: 96_000,
   });
+  const playbackUrl = useObjectUrl(recorder.blob);
 
   return (
     <>
@@ -84,7 +87,18 @@ export function Recorder() {
       <button type="button" onClick={recorder.stop}>
         Stop recording
       </button>
-      {recorder.blob ? <video src={URL.createObjectURL(recorder.blob)} controls /> : null}
+      <button
+        type="button"
+        disabled={!recorder.file}
+        onClick={() => {
+          if (recorder.file) {
+            downloadBlob(recorder.file);
+          }
+        }}
+      >
+        Download recording
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
     </>
   );
 }

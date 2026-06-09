@@ -169,6 +169,35 @@ describe('useWebcam', () => {
     expect(onStop).toHaveBeenCalledTimes(1);
   });
 
+  it('uses the latest onStop callback when an active stream is cleaned up on unmount', async () => {
+    const active = createStream();
+    const firstOnStop = vi.fn();
+    const latestOnStop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue(active.stream),
+      },
+    });
+
+    const { rerender, result, unmount } = renderHook(
+      ({ onStop }: { onStop: () => void }) => useWebcam({ onStop }),
+      {
+        initialProps: { onStop: firstOnStop },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+
+    rerender({ onStop: latestOnStop });
+    unmount();
+
+    expect(firstOnStop).not.toHaveBeenCalled();
+    expect(latestOnStop).toHaveBeenCalledTimes(1);
+  });
+
   it('applies advanced constraints to the active video track', async () => {
     const active = createStream();
     const applyConstraints = vi.fn().mockResolvedValue(undefined);
