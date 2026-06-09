@@ -19,5 +19,5 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "examples", "*.config.ts", "vitest.setup.ts"]
+  "include": ["src", "site", "examples", "*.config.ts", "vitest.setup.ts"]
 }

@@ -2,6 +2,7 @@ docs
 examples
 src
 coverage
+dist-site
 *.log
 *.config.*
 tsconfig*.json
