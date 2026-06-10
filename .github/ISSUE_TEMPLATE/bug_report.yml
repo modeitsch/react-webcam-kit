@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a problem with react-webcam-kit
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Share a minimal reproduction or code sample.
+      render: tsx
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: Chrome 126, Safari 17, Firefox 127
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS
+      placeholder: macOS, Windows, iOS Safari, Android Chrome
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Permissions, HTTPS/localhost, camera type, console errors, or screenshots.

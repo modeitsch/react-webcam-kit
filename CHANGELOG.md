@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1
+
+- Added README badges, expanded npm keywords, and updated repository metadata topics.
+- Added contribution docs, issue templates, a pull request template, and a code of conduct.
+- Added a GitHub Actions npm publish workflow for future provenance releases.
+- Added migration, comparison, compatibility, and search-focused camera guides.
+- Added focused example guides for avatar capture, video recording, mobile back camera, and video
+  upload.
+- Added a live camera demo to the GitHub Pages site.
+
 ## 0.3.0
 
 - Added `switchFacingMode()` for front/back camera switching with ideal `facingMode` constraints.

@@ -1,5 +1,11 @@
 # react-webcam-kit
 
+[![npm version](https://img.shields.io/npm/v/react-webcam-kit.svg)](https://www.npmjs.com/package/react-webcam-kit)
+[![npm downloads](https://img.shields.io/npm/dm/react-webcam-kit.svg)](https://www.npmjs.com/package/react-webcam-kit)
+[![CI](https://github.com/modeitsch/react-webcam-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/modeitsch/react-webcam-kit/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 ![react-webcam-kit logo](./docs/assets/logo.svg)
 
 A modern React camera toolkit for webcam preview, screenshots, device switching, and safe media
@@ -360,7 +366,19 @@ Blob, canvas, or ImageData.
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)
+- [Migration Guide](./docs/MIGRATION.md)
+- [Comparison Notes](./docs/COMPARISON.md)
+- [Browser Compatibility Matrix](./docs/COMPATIBILITY.md)
 - [Security Policy](./SECURITY.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+
+## Examples
+
+- [Basic Vite example](./examples/basic)
+- [Avatar capture](./examples/avatar-capture)
+- [Video recorder](./examples/vite-recorder)
+- [Mobile back camera](./examples/mobile-back-camera)
+- [Video upload](./examples/video-upload)
 
 ## Development
 

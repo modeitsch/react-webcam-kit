@@ -1,12 +1,16 @@
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+
+import { downloadBlob, useObjectUrl, useWebcam } from '../../src';
 
 import './styles.css';
 
 const navItems = [
+  { href: '#demo', label: 'Demo' },
   { href: '#install', label: 'Install' },
   { href: '#api', label: 'API' },
   { href: '#capabilities', label: 'Capabilities' },
+  { href: '#guides', label: 'Guides' },
   { href: '#quality', label: 'Quality' },
 ];
 
@@ -70,6 +74,126 @@ const qualityItems = [
   'Security policy and dependency monitoring',
 ];
 
+const guideItems = [
+  [
+    'React webcam capture',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-WEBCAM-CAPTURE.md',
+  ],
+  [
+    'React camera recording',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-CAMERA-RECORDING.md',
+  ],
+  [
+    'Front and back camera switching',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-FRONT-BACK-CAMERA.md',
+  ],
+  [
+    'Migration guide',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/MIGRATION.md',
+  ],
+  [
+    'Browser compatibility',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPATIBILITY.md',
+  ],
+  [
+    'Comparison notes',
+    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPARISON.md',
+  ],
+];
+
+function LiveDemo() {
+  const [capture, setCapture] = useState<Blob | null>(null);
+  const camera = useWebcam({
+    audio: false,
+    startOnMount: false,
+    videoConstraints: {
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+      facingMode: { ideal: 'user' },
+    },
+  });
+  const captureUrl = useObjectUrl(capture);
+
+  async function captureFrame() {
+    const blob = await camera.getScreenshotBlob({
+      format: 'image/jpeg',
+      quality: 0.86,
+      width: 960,
+    });
+    setCapture(blob);
+  }
+
+  return (
+    <section className="section live-demo" id="demo">
+      <div className="section__intro">
+        <p className="section-label">Live demo</p>
+        <h2>Try the real camera hooks in the browser.</h2>
+      </div>
+      <div className="live-demo__layout">
+        <div className="live-demo__preview">
+          <video ref={camera.videoRef} autoPlay playsInline muted />
+          {camera.status !== 'ready' ? (
+            <div className="live-demo__placeholder">
+              <strong>{camera.status}</strong>
+              <span>Camera preview appears here after permission.</span>
+            </div>
+          ) : null}
+        </div>
+        <div className="live-demo__panel">
+          <dl className="status-list">
+            <div>
+              <dt>Status</dt>
+              <dd>{camera.status}</dd>
+            </div>
+            <div>
+              <dt>Permission</dt>
+              <dd>{camera.permission}</dd>
+            </div>
+            <div>
+              <dt>Facing mode</dt>
+              <dd>{camera.selectedFacingMode ?? 'default'}</dd>
+            </div>
+          </dl>
+          <div className="control-grid" aria-label="Camera demo controls">
+            <button type="button" onClick={() => void camera.start()}>
+              Start
+            </button>
+            <button type="button" onClick={camera.stop}>
+              Stop
+            </button>
+            <button type="button" onClick={() => void captureFrame()}>
+              Capture
+            </button>
+            <button type="button" onClick={() => void camera.switchFacingMode('environment')}>
+              Back camera
+            </button>
+            <button type="button" onClick={() => void camera.switchFacingMode('user')}>
+              Front camera
+            </button>
+            <button
+              type="button"
+              disabled={!capture}
+              onClick={() => {
+                if (capture) {
+                  downloadBlob(capture, 'react-webcam-kit-capture.jpg');
+                }
+              }}
+            >
+              Download
+            </button>
+          </div>
+          {captureUrl ? (
+            <figure className="capture-result">
+              <img src={captureUrl} alt="Captured camera frame" />
+              <figcaption>Latest captured Blob preview</figcaption>
+            </figure>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function App() {
   return (
     <main>
@@ -106,11 +230,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.3.0</dt>
+              <dt>0.3.1</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>8</dt>
+              <dt>17</dt>
               <dd>Public exports</dd>
             </div>
             <div>
@@ -145,6 +269,8 @@ function App() {
           </div>
         </div>
       </section>
+
+      <LiveDemo />
 
       <section className="section section--features" id="why">
         <div className="section__intro">
@@ -228,6 +354,20 @@ function App() {
               <span aria-hidden="true" />
               <strong>{item}</strong>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section guides" id="guides">
+        <div className="section__intro">
+          <p className="section-label">Guides</p>
+          <h2>Search-friendly docs for common camera jobs.</h2>
+        </div>
+        <div className="guide-grid">
+          {guideItems.map(([label, href]) => (
+            <a href={href} key={href}>
+              {label}
+            </a>
           ))}
         </div>
       </section>
