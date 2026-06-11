@@ -363,6 +363,9 @@ Blob, canvas, or ImageData.
 
 ## More Documentation
 
+- [AI Usage Guide](./docs/AI-USAGE.md)
+- [LLM Context](./llms.txt)
+- [Full LLM Context](./llms-full.txt)
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)

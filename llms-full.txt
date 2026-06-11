@@ -1,0 +1,334 @@
+# react-webcam-kit LLM Context
+
+react-webcam-kit is a TypeScript React package for browser webcam, camera capture, camera recording, device selection, and media cleanup flows.
+
+Use this file as compact package context for coding assistants, documentation agents, and search tools. Prefer the linked repository docs for the latest full API reference.
+
+## Install
+
+```bash
+npm install react-webcam-kit
+```
+
+Peer dependency:
+
+```json
+{
+  "react": ">=18.0.0 || >=19.0.0"
+}
+```
+
+## What To Import
+
+```tsx
+import {
+  Webcam,
+  captureFrame,
+  downloadBlob,
+  getSupportedMimeType,
+  isMimeTypeSupported,
+  normalizeMediaError,
+  useDevices,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+  type MediaError,
+  type WebcamHandle,
+} from 'react-webcam-kit';
+```
+
+## Choose The API
+
+- Use `<Webcam />` when the app needs a quick camera preview with ref methods.
+- Use `useWebcam()` when the app needs a custom camera UI, custom controls, status rendering, or direct stream access.
+- Use `useDevices()` when the app needs a camera/microphone picker.
+- Use `useMediaRecorder()` when the app needs to record an active `MediaStream`.
+- Use `captureFrame()` when the app already owns a video element and only needs capture helpers.
+- Use `useObjectUrl()` when previewing a Blob, File, or MediaSource.
+- Use `downloadBlob()` when saving screenshots or recordings.
+- Use MIME helpers before setting `MediaRecorder` MIME types.
+
+## Webcam Component
+
+```tsx
+import { useRef } from 'react';
+import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+
+export function CameraPreview() {
+  const webcamRef = useRef<WebcamHandle>(null);
+
+  async function uploadAvatar() {
+    const blob = await webcamRef.current?.getScreenshotBlob({
+      format: 'image/jpeg',
+      quality: 0.9,
+      width: 512,
+      height: 512,
+    });
+
+    if (!blob) return;
+
+    const file = new File([blob], 'avatar.jpg', { type: blob.type });
+    const body = new FormData();
+    body.set('avatar', file);
+
+    await fetch('/api/avatar', {
+      method: 'POST',
+      body,
+    });
+  }
+
+  return (
+    <>
+      <Webcam
+        ref={webcamRef}
+        audio={false}
+        mirrored
+        screenshotFormat="image/jpeg"
+        videoConstraints={{
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: { ideal: 'user' },
+        }}
+      />
+      <button type="button" onClick={() => void uploadAvatar()}>
+        Upload avatar
+      </button>
+    </>
+  );
+}
+```
+
+Important props:
+
+- `audio`: request microphone tracks when true.
+- `audioConstraints`: custom microphone constraints.
+- `videoConstraints`: custom camera constraints.
+- `enabled`: start or stop declaratively.
+- `startOnMount`: start automatically on mount. Defaults to true.
+- `mirrored`: mirror preview and captured frames.
+- `muted`: mute the local preview element without muting stream audio.
+- `screenshotFormat`: default capture format.
+- `screenshotQuality`: JPEG/WebP capture quality.
+- `fallback`: fallback React node or render function for unsupported/error states.
+- `onStart`, `onStop`, `onUserMedia`, `onUserMediaError`, `onError`, `onPermissionChange`, `onDevicesChanged`: lifecycle callbacks.
+
+Ref methods:
+
+- `start()`
+- `stop()`
+- `switchDevice(deviceId, constraints?)`
+- `switchFacingMode(mode, constraints?)`
+- `applyVideoConstraints(constraints)`
+- `getScreenshot(options?)`
+- `getScreenshotBlob(options?)`
+- `getCanvas(options?)`
+- `stream`
+- `video`
+
+## Custom Camera UI
+
+```tsx
+import { useWebcam } from 'react-webcam-kit';
+
+export function CustomCamera() {
+  const camera = useWebcam({
+    audio: false,
+    startOnMount: false,
+    videoConstraints: {
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+    },
+    onError(error) {
+      console.error(error.type, error.message);
+    },
+  });
+
+  return (
+    <>
+      <video ref={camera.videoRef} autoPlay playsInline muted />
+
+      <button type="button" onClick={() => void camera.start()}>
+        Start
+      </button>
+      <button type="button" onClick={camera.stop}>
+        Stop
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const image = camera.getScreenshot({
+            format: 'image/png',
+          });
+          console.log(image);
+        }}
+      >
+        Capture
+      </button>
+
+      <p>Status: {camera.status}</p>
+      <p>Permission: {camera.permission}</p>
+    </>
+  );
+}
+```
+
+`useWebcam()` returns stream state, `videoRef`, `stream`, `status`, `permission`, `error`, `selectedDeviceId`, `selectedFacingMode`, `start`, `stop`, `restart`, `switchDevice`, `switchFacingMode`, `applyVideoConstraints`, `getScreenshot`, `getScreenshotBlob`, and `getCanvas`.
+
+## Device Picker
+
+```tsx
+import { useDevices, useWebcam } from 'react-webcam-kit';
+
+export function DevicePicker() {
+  const devices = useDevices();
+  const camera = useWebcam({ audio: false });
+
+  return (
+    <select
+      value={camera.selectedDeviceId ?? ''}
+      onChange={(event) => {
+        void camera.switchDevice(event.target.value);
+      }}
+    >
+      <option value="" disabled>
+        Select a camera
+      </option>
+      {devices.videoInputs.map((device) => (
+        <option key={device.deviceId} value={device.deviceId}>
+          {device.label || 'Camera'}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+`switchDevice()` uses an exact `deviceId` constraint. Use this after the user selects a specific device.
+
+## Front And Back Camera Switching
+
+```tsx
+await camera.switchFacingMode('environment');
+await camera.switchFacingMode('user');
+```
+
+Use `switchFacingMode()` for mobile front/back camera flows. It uses ideal `facingMode` constraints, which are usually safer on mobile devices than strict constraints.
+
+## Recording
+
+```tsx
+import { downloadBlob, getSupportedMimeType, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
+
+const mimeType = getSupportedMimeType([
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+]);
+
+export function Recorder() {
+  const camera = useWebcam({ audio: true });
+  const recorder = useMediaRecorder({
+    stream: camera.stream,
+    mimeType: mimeType ?? undefined,
+    fileName: 'camera-recording',
+    fileType: 'webm',
+    videoBitsPerSecond: 1_500_000,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <video ref={camera.videoRef} autoPlay playsInline muted />
+      <button type="button" onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.pause}>
+        Pause
+      </button>
+      <button type="button" onClick={recorder.resume}>
+        Resume
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+      <button type="button" onClick={recorder.cancel}>
+        Discard
+      </button>
+      <button
+        type="button"
+        disabled={!recorder.file}
+        onClick={() => {
+          if (recorder.file) downloadBlob(recorder.file);
+        }}
+      >
+        Download
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+`useMediaRecorder()` returns `status`, `blob`, `file`, `chunks`, `error`, `isSupported`, `isAudioMuted`, `start`, `stop`, `pause`, `resume`, `reset`, `cancel`, `muteAudio`, `unmuteAudio`, and `setAudioMuted`.
+
+## Advanced Track Constraints
+
+```tsx
+const [track] = camera.stream?.getVideoTracks() ?? [];
+const capabilities = track?.getCapabilities?.();
+
+if (capabilities && 'torch' in capabilities) {
+  await camera.applyVideoConstraints({
+    advanced: [{ torch: true } as MediaTrackConstraintSet],
+  });
+}
+```
+
+Use feature detection for torch, zoom, focus distance, exposure, and similar hardware-specific controls. Browsers expose different capabilities on different devices.
+
+## Error Handling
+
+Camera errors are normalized into typed values. Use `error.type` for UI decisions.
+
+Common categories include:
+
+- permission denied
+- device not found
+- device already in use
+- overconstrained constraints
+- insecure context
+- unsupported browser
+- unknown media error
+
+Do not assume permission is granted before calling `start()`. Do not assume device labels are visible before permission is granted.
+
+## SSR And Framework Notes
+
+- Camera APIs are browser-only.
+- In Next.js, Remix, Astro, and similar frameworks, render camera components on the client.
+- Do not call `navigator.mediaDevices.getUserMedia` during SSR.
+- If dynamically importing a camera component, disable SSR for that component.
+
+## Browser Rules
+
+- Requires HTTPS or localhost.
+- Requires `navigator.mediaDevices.getUserMedia`.
+- Recording requires `MediaRecorder`.
+- MIME support varies. Use `getSupportedMimeType()`.
+- iOS and Android camera switching works best with `facingMode: { ideal: 'user' }` or `facingMode: { ideal: 'environment' }`.
+- Canvas screenshot capture can fail if the video is not ready or the browser blocks canvas reads.
+
+## Docs
+
+- Package: https://www.npmjs.com/package/react-webcam-kit
+- Repository: https://github.com/modeitsch/react-webcam-kit
+- Website: https://modeitsch.com/react-webcam-kit/
+- Short LLM context: https://modeitsch.com/react-webcam-kit/llms.txt
+- API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
+- AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md
+- Recipes: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/RECIPES.md
+- Browser notes: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/BROWSER-NOTES.md
+- Compatibility: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPATIBILITY.md
+- Migration guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/MIGRATION.md
+- Security policy: https://github.com/modeitsch/react-webcam-kit/blob/master/SECURITY.md
+

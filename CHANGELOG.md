@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2
+
+- Added `llms.txt` and `llms-full.txt` package context files for AI-assisted discovery.
+- Added an AI usage guide with API selection notes, recipes, and browser rules for coding
+  assistants.
+- Exposed LLM context, `robots.txt`, and `sitemap.xml` from the GitHub Pages site.
+- Added AI-facing docs to the npm package contents.
+
 ## 0.3.1
 
 - Added README badges, expanded npm keywords, and updated repository metadata topics.

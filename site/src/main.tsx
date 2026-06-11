@@ -99,6 +99,8 @@ const guideItems = [
     'Comparison notes',
     'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPARISON.md',
   ],
+  ['AI usage guide', 'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md'],
+  ['LLM package context', 'https://modeitsch.com/react-webcam-kit/llms.txt'],
 ];
 
 function LiveDemo() {
@@ -230,7 +232,7 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.3.1</dt>
+              <dt>0.3.2</dt>
               <dd>Latest release</dd>
             </div>
             <div>

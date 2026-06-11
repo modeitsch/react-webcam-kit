@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://modeitsch.com/react-webcam-kit/sitemap.xml
+
+# AI-readable package context:
+# https://modeitsch.com/react-webcam-kit/llms.txt
+# https://modeitsch.com/react-webcam-kit/llms-full.txt
+

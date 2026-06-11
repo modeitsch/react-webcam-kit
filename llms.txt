@@ -1,0 +1,74 @@
+# react-webcam-kit
+
+> Modern React webcam toolkit for camera preview, screenshots, recording, device switching, front/back camera switching, and safe media cleanup.
+
+react-webcam-kit is a small TypeScript React package for browser camera work. It wraps `getUserMedia`, `MediaRecorder`, canvas capture, and media device enumeration with component and hook APIs.
+
+## Install
+
+```bash
+npm install react-webcam-kit
+```
+
+## Core APIs
+
+- `<Webcam />`: drop-in React preview component with ref methods for stream control, screenshots, device switching, and facing mode switching.
+- `useWebcam()`: hook for custom camera UI, stream lifecycle, status, permission state, typed media errors, screenshots, device switching, and advanced track constraints.
+- `useDevices()`: hook for video/audio input enumeration with arrays, maps, counts, permission state, errors, and refresh.
+- `useMediaRecorder()`: hook for recording an active `MediaStream` with pause/resume/cancel, Blob/File output, chunks, bitrate controls, MIME controls, and audio mute controls.
+- `useObjectUrl()`: hook for safe Blob, File, and MediaSource object URLs with cleanup.
+- `downloadBlob()`: utility for downloading Blob or File values.
+- `captureFrame()`: low-level capture from an `HTMLVideoElement` as Data URL, Blob, canvas, or ImageData.
+- `getSupportedMimeType()`: utility for choosing a browser-supported MediaRecorder MIME type.
+- `normalizeMediaError()`: utility for typed permission, device, security, overconstrained, and browser support errors.
+
+## Best Fit
+
+- React webcam preview
+- React screenshot capture
+- Avatar capture and upload
+- React camera recording
+- Front/back mobile camera switching
+- Camera and microphone device picker UIs
+- MediaRecorder wrappers
+- `getUserMedia` lifecycle cleanup
+- Browser camera error handling
+
+## Important Browser Notes
+
+- Camera APIs require a secure context: HTTPS or localhost.
+- Camera UI must run in the browser. Do not use this package during server-side rendering.
+- Device labels may be empty until the user grants permission.
+- `MediaRecorder` MIME support varies by browser. Use `getSupportedMimeType()` before forcing a MIME type.
+- Mobile devices are sensitive to strict constraints. Prefer `ideal` width, height, and `facingMode` constraints unless exact hardware selection is required.
+- Canvas screenshot methods can return `null` when the video is not ready or browser privacy settings block capture.
+
+## Common Imports
+
+```tsx
+import {
+  Webcam,
+  downloadBlob,
+  getSupportedMimeType,
+  useDevices,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+  type WebcamHandle,
+} from 'react-webcam-kit';
+```
+
+## Canonical Links
+
+- Package: https://www.npmjs.com/package/react-webcam-kit
+- Repository: https://github.com/modeitsch/react-webcam-kit
+- Website: https://modeitsch.com/react-webcam-kit/
+- Full LLM context: https://modeitsch.com/react-webcam-kit/llms-full.txt
+- API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
+- AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md
+- Recipes: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/RECIPES.md
+- Browser notes: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/BROWSER-NOTES.md
+- Compatibility: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPATIBILITY.md
+- Migration guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/MIGRATION.md
+- Security policy: https://github.com/modeitsch/react-webcam-kit/blob/master/SECURITY.md
+
