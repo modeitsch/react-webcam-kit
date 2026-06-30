@@ -433,7 +433,7 @@ h3 {
 
 .status-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
 }
@@ -495,10 +495,27 @@ h3 {
   border-radius: 8px;
 }
 
+.capture-result video {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
 .capture-result figcaption {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.demo-note {
+  margin: 0;
+  border-left: 4px solid var(--amber);
+  padding: 10px 12px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .feature-grid,

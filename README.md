@@ -19,10 +19,12 @@ React camera capture, MediaRecorder, avatar upload, or mobile camera switching f
 
 - `<Webcam />` preview component with imperative capture methods
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
+- `useCameraPermissions()` hook for preflight permission UI
 - `useDevices()` hook for camera and microphone enumeration, maps, and counts
-- `useMediaRecorder()` hook for typed video recording and Blob output
+- `useMediaRecorder()` hook for typed video recording, duration, max-duration, and Blob output
 - `useObjectUrl()` hook for safe Blob previews
 - `downloadBlob()` helper for recording and screenshot downloads
+- `formatDuration()` helper for recorder timers
 - Recorder `cancel()`, `fileName`, `fileType`, and File output for retry/save flows
 - Recorder and playback MIME support helpers
 - Data URL, Blob, canvas, and ImageData capture utilities
@@ -112,13 +114,20 @@ if (blob) {
 ## Record Video
 
 ```tsx
-import { downloadBlob, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
+import {
+  downloadBlob,
+  formatDuration,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+} from 'react-webcam-kit';
 
 export function CameraRecorder() {
   const camera = useWebcam({ audio: true });
   const recorder = useMediaRecorder({
     fileName: 'camera-recording',
     fileType: 'webm',
+    maxDuration: 30_000,
     stream: camera.stream,
     videoBitsPerSecond: 1_500_000,
   });
@@ -145,6 +154,7 @@ export function CameraRecorder() {
         Download
       </button>
       {playbackUrl ? <video src={playbackUrl} controls /> : null}
+      <p>{formatDuration(recorder.duration)}</p>
     </>
   );
 }
@@ -152,6 +162,9 @@ export function CameraRecorder() {
 
 Use `videoBitsPerSecond`, `audioBitsPerSecond`, `bitsPerSecond`, `mimeType`, and `timeslice` to tune
 output size and browser behavior.
+
+Use `maxDuration`, `duration`, `recordingTimeLimitReached`, and `onMaxDuration` for recording time
+limits and timer UI.
 
 Use `cancel()` when the user wants to discard a recording and retry without creating a final Blob.
 
@@ -193,6 +206,26 @@ export function CameraControls() {
 
       <p>Status: {camera.status}</p>
     </>
+  );
+}
+```
+
+## Check Camera Permission
+
+```tsx
+import { useCameraPermissions } from 'react-webcam-kit';
+
+export function PermissionPrompt() {
+  const cameraPermission = useCameraPermissions();
+
+  return (
+    <button
+      type="button"
+      disabled={!cameraPermission.canRequest}
+      onClick={() => void cameraPermission.requestPermission()}
+    >
+      {cameraPermission.permission === 'granted' ? 'Camera ready' : 'Enable camera'}
+    </button>
   );
 }
 ```
@@ -332,12 +365,14 @@ and `disablePictureInPicture`.
 ### `useMediaRecorder()`
 
 `useMediaRecorder(options)` records an active `MediaStream` and returns recording state, chunks, the
-final Blob, and controls for `start`, `stop`, `pause`, `resume`, and `reset`.
+final Blob, duration, max-duration state, and controls for `start`, `stop`, `pause`, `resume`, and
+`reset`.
 
 ```tsx
 const recorder = useMediaRecorder({
   stream: camera.stream,
   mimeType: 'video/webm',
+  maxDuration: 30_000,
   videoBitsPerSecond: 1_500_000,
   timeslice: 1000,
 });
@@ -355,6 +390,16 @@ state, and normalized errors.
 
 `useDevices()` returns `videoInputs`, `audioInputs`, `devicesById`, `devicesByType`, `counts`,
 `permission`, `error`, and `refresh()`.
+
+### `useCameraPermissions()`
+
+`useCameraPermissions(options)` returns `permission`, `isSupported`, `canRequest`, `error`,
+`refresh()`, and `requestPermission()`. `requestPermission()` probes the camera permission, stops the
+temporary stream, and resolves to `true` when permission was granted.
+
+### `formatDuration()`
+
+`formatDuration(duration)` formats milliseconds as `m:ss` for recorder timer UI.
 
 ### `captureFrame()`
 

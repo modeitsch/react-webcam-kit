@@ -25,9 +25,11 @@ import {
   Webcam,
   captureFrame,
   downloadBlob,
+  formatDuration,
   getSupportedMimeType,
   isMimeTypeSupported,
   normalizeMediaError,
+  useCameraPermissions,
   useDevices,
   useMediaRecorder,
   useObjectUrl,
@@ -41,11 +43,13 @@ import {
 
 - Use `<Webcam />` when the app needs a quick camera preview with ref methods.
 - Use `useWebcam()` when the app needs a custom camera UI, custom controls, status rendering, or direct stream access.
+- Use `useCameraPermissions()` when the app needs a permission prompt before rendering a full camera workflow.
 - Use `useDevices()` when the app needs a camera/microphone picker.
-- Use `useMediaRecorder()` when the app needs to record an active `MediaStream`.
+- Use `useMediaRecorder()` when the app needs to record an active `MediaStream`, show duration, or enforce a max duration.
 - Use `captureFrame()` when the app already owns a video element and only needs capture helpers.
 - Use `useObjectUrl()` when previewing a Blob, File, or MediaSource.
 - Use `downloadBlob()` when saving screenshots or recordings.
+- Use `formatDuration()` when displaying recorder timer labels.
 - Use MIME helpers before setting `MediaRecorder` MIME types.
 
 ## Webcam Component

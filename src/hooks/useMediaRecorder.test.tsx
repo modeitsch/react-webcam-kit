@@ -67,6 +67,7 @@ function createStream() {
 
 describe('useMediaRecorder', () => {
   afterEach(() => {
+    vi.useRealTimers();
     MockMediaRecorder.stopDispatch = 'sync';
     Object.defineProperty(globalThis, 'MediaRecorder', {
       configurable: true,
@@ -121,6 +122,77 @@ describe('useMediaRecorder', () => {
     expect(result.current.status).toBe('stopped');
     expect(result.current.blob).toBeInstanceOf(Blob);
     expect(onStop).toHaveBeenCalledWith(result.current.blob, result.current.chunks);
+  });
+
+  it('tracks recording duration while recording and pauses duration updates when paused', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        durationUpdateInterval: 100,
+        stream: createStream(),
+      }),
+    );
+
+    act(() => {
+      result.current.start();
+      vi.advanceTimersByTime(450);
+    });
+
+    expect(result.current.duration).toBe(400);
+
+    act(() => {
+      result.current.pause();
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(result.current.status).toBe('paused');
+    expect(result.current.duration).toBe(450);
+
+    act(() => {
+      result.current.resume();
+      vi.advanceTimersByTime(250);
+    });
+
+    expect(result.current.duration).toBe(650);
+  });
+
+  it('auto-stops recording when maxDuration is reached', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const onMaxDuration = vi.fn();
+    const onStop = vi.fn();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        maxDuration: 1000,
+        onMaxDuration,
+        onStop,
+        stream: createStream(),
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+      recorder?.emitChunk(new Blob(['limited'], { type: 'video/webm' }));
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(recorder?.stop).toHaveBeenCalledTimes(1);
+    expect(result.current.recordingTimeLimitReached).toBe(true);
+    expect(result.current.duration).toBe(1000);
+    expect(result.current.status).toBe('stopped');
+    expect(onMaxDuration).toHaveBeenCalledWith(1000);
+    expect(onStop).toHaveBeenCalledTimes(1);
   });
 
   it('pauses, resumes, and resets recorder state after the recorder is inactive', () => {

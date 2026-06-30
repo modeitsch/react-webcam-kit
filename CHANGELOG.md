@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Added `useCameraPermissions()` for client-side permission probes and unsupported-browser state.
+- Added recorder `duration`, `maxDuration`, `durationUpdateInterval`, `onMaxDuration`, and
+  `recordingTimeLimitReached`.
+- Added `formatDuration()` for recording timers.
+- Expanded the live docs demo with recording, max-duration, playback, and download controls.
+
 ## 0.3.3
 
 - Added crawlable GitHub Pages landing pages for React webcam capture, camera recording,

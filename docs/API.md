@@ -7,6 +7,8 @@ TypeScript types.
 
 ```ts
 export { Webcam } from 'react-webcam-kit';
+export { formatDuration } from 'react-webcam-kit';
+export { useCameraPermissions } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
 export { useMediaRecorder } from 'react-webcam-kit';
@@ -152,6 +154,43 @@ permission is granted.
 Use `devicesById` for fast lookup after a user selects a device ID, `devicesByType.video` and
 `devicesByType.audio` for grouped UIs, and `counts.video` or `counts.audio` for compact controls.
 
+## `useCameraPermissions(options)`
+
+Use this hook when a screen needs to show a preflight permission prompt before rendering a full
+camera workflow.
+
+```tsx
+const cameraPermission = useCameraPermissions({
+  audio: true,
+  videoConstraints: {
+    facingMode: { ideal: 'user' },
+  },
+});
+
+const granted = await cameraPermission.requestPermission();
+```
+
+### Options
+
+| Option               | Type                              | Description                                     |
+| -------------------- | --------------------------------- | ----------------------------------------------- |
+| `audio`              | `boolean`                         | Also request microphone permission when true.   |
+| `audioConstraints`   | `MediaStreamConstraints['audio']` | Audio constraints used when `audio` is true.    |
+| `videoConstraints`   | `MediaStreamConstraints['video']` | Video constraints for the permission probe.     |
+| `onPermissionChange` | `(permission) => void`            | Runs when permission state is known or changes. |
+| `onError`            | `(error) => void`                 | Runs with normalized media errors.              |
+
+### Result
+
+| Field               | Type                                            | Description                                                                   |
+| ------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `permission`        | `PermissionState \| 'unsupported' \| 'unknown'` | Camera permission state when available.                                       |
+| `isSupported`       | `boolean`                                       | Whether `getUserMedia` is available.                                          |
+| `canRequest`        | `boolean`                                       | Whether a permission request can be started.                                  |
+| `error`             | `CameraError \| null`                           | Last normalized permission error.                                             |
+| `refresh`           | function                                        | Re-query permission state.                                                    |
+| `requestPermission` | function                                        | Request camera access, stop the probe stream, and return `true` when granted. |
+
 ## `useMediaRecorder(options)`
 
 Use this hook to record an active `MediaStream` and produce a Blob.
@@ -167,45 +206,58 @@ const recorder = useMediaRecorder({
 
 ### Options
 
-| Option                 | Type                  | Description                                                                       |
-| ---------------------- | --------------------- | --------------------------------------------------------------------------------- |
-| `stream`               | `MediaStream \| null` | Stream to record. You can also pass a stream to `start(stream)`.                  |
-| `mimeType`             | `string`              | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
-| `fileName`             | `string` or function  | Optional base file name used to create `file` after `stop()`.                     |
-| `fileType`             | `string`              | Optional file extension used with `fileName`.                                     |
-| `bitsPerSecond`        | `number`              | Total target bitrate.                                                             |
-| `videoBitsPerSecond`   | `number`              | Target video bitrate.                                                             |
-| `audioBitsPerSecond`   | `number`              | Target audio bitrate.                                                             |
-| `timeslice`            | `number`              | Optional chunk interval passed to `MediaRecorder.start()`.                        |
-| `onDataAvailable`      | `(event) => void`     | Runs for every recorder chunk.                                                    |
-| `onStart` / `onStop`   | callbacks             | Runs when recording starts and when the final Blob is assembled.                  |
-| `onPause` / `onResume` | callbacks             | Runs on recorder pause and resume.                                                |
-| `onError`              | `(error) => void`     | Runs with normalized recorder errors.                                             |
+| Option                   | Type                  | Description                                                                       |
+| ------------------------ | --------------------- | --------------------------------------------------------------------------------- |
+| `stream`                 | `MediaStream \| null` | Stream to record. You can also pass a stream to `start(stream)`.                  |
+| `mimeType`               | `string`              | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
+| `fileName`               | `string` or function  | Optional base file name used to create `file` after `stop()`.                     |
+| `fileType`               | `string`              | Optional file extension used with `fileName`.                                     |
+| `maxDuration`            | `number`              | Optional max recording duration in milliseconds.                                  |
+| `durationUpdateInterval` | `number`              | Duration update interval in milliseconds. Defaults to `250`.                      |
+| `bitsPerSecond`          | `number`              | Total target bitrate.                                                             |
+| `videoBitsPerSecond`     | `number`              | Target video bitrate.                                                             |
+| `audioBitsPerSecond`     | `number`              | Target audio bitrate.                                                             |
+| `timeslice`              | `number`              | Optional chunk interval passed to `MediaRecorder.start()`.                        |
+| `onDataAvailable`        | `(event) => void`     | Runs for every recorder chunk.                                                    |
+| `onStart` / `onStop`     | callbacks             | Runs when recording starts and when the final Blob is assembled.                  |
+| `onMaxDuration`          | `(duration) => void`  | Runs when `maxDuration` is reached.                                               |
+| `onPause` / `onResume`   | callbacks             | Runs on recorder pause and resume.                                                |
+| `onError`                | `(error) => void`     | Runs with normalized recorder errors.                                             |
 
 ### Result
 
-| Field              | Type                         | Description                                           |
-| ------------------ | ---------------------------- | ----------------------------------------------------- |
-| `status`           | `RecordingStatus`            | Current recorder state.                               |
-| `isSupported`      | `boolean`                    | Whether `MediaRecorder` exists in this browser.       |
-| `mimeType`         | `string \| null`             | Selected supported MIME type.                         |
-| `isAudioMuted`     | `boolean`                    | Whether recorder audio tracks are currently disabled. |
-| `chunks`           | `Blob[]`                     | Non-empty recorded chunks.                            |
-| `blob`             | `Blob \| null`               | Final Blob after `stop()`.                            |
-| `file`             | `File \| null`               | Final File when `fileName` is provided.               |
-| `error`            | `MediaRecorderError \| null` | Last recorder error.                                  |
-| `recorder`         | `MediaRecorder \| null`      | Current browser recorder instance.                    |
-| `start`            | function                     | Start recording.                                      |
-| `stop`             | function                     | Stop recording and assemble the Blob.                 |
-| `cancel`           | function                     | Stop and discard the active recording.                |
-| `muteAudio`        | function                     | Disable audio tracks on the current stream.           |
-| `unmuteAudio`      | function                     | Re-enable audio tracks on the current stream.         |
-| `setAudioMuted`    | function                     | Set audio track enabled state from a boolean.         |
-| `pause` / `resume` | functions                    | Pause or resume when supported by the recorder state. |
-| `reset`            | function                     | Clear chunks, Blob, and error state.                  |
+| Field                       | Type                         | Description                                           |
+| --------------------------- | ---------------------------- | ----------------------------------------------------- |
+| `status`                    | `RecordingStatus`            | Current recorder state.                               |
+| `isSupported`               | `boolean`                    | Whether `MediaRecorder` exists in this browser.       |
+| `mimeType`                  | `string \| null`             | Selected supported MIME type.                         |
+| `duration`                  | `number`                     | Active recording duration in milliseconds.            |
+| `recordingTimeLimitReached` | `boolean`                    | Whether `maxDuration` stopped the recording.          |
+| `isAudioMuted`              | `boolean`                    | Whether recorder audio tracks are currently disabled. |
+| `chunks`                    | `Blob[]`                     | Non-empty recorded chunks.                            |
+| `blob`                      | `Blob \| null`               | Final Blob after `stop()`.                            |
+| `file`                      | `File \| null`               | Final File when `fileName` is provided.               |
+| `error`                     | `MediaRecorderError \| null` | Last recorder error.                                  |
+| `recorder`                  | `MediaRecorder \| null`      | Current browser recorder instance.                    |
+| `start`                     | function                     | Start recording.                                      |
+| `stop`                      | function                     | Stop recording and assemble the Blob.                 |
+| `cancel`                    | function                     | Stop and discard the active recording.                |
+| `muteAudio`                 | function                     | Disable audio tracks on the current stream.           |
+| `unmuteAudio`               | function                     | Re-enable audio tracks on the current stream.         |
+| `setAudioMuted`             | function                     | Set audio track enabled state from a boolean.         |
+| `pause` / `resume`          | functions                    | Pause or resume when supported by the recorder state. |
+| `reset`                     | function                     | Clear chunks, Blob, and error state.                  |
 
 `cancel()` stops the active recorder and discards collected chunks. It does not create a final Blob
 and does not call `onStop`.
+
+## `formatDuration(duration)`
+
+Formats a duration in milliseconds as `m:ss`.
+
+```ts
+formatDuration(65_000); // "1:05"
+```
 
 ## `useObjectUrl(source)`
 

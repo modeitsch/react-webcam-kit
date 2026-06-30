@@ -1,7 +1,14 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { downloadBlob, useObjectUrl, useWebcam } from '../../src';
+import {
+  downloadBlob,
+  formatDuration,
+  useCameraPermissions,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+} from '../../src';
 
 import './styles.css';
 
@@ -42,8 +49,10 @@ const apiRows = [
   ['useDevices()', 'Enumerates media devices with grouped arrays, maps, counts, and refresh.'],
   [
     'useMediaRecorder()',
-    'Records a MediaStream with MIME, bitrate, chunk, pause, mute, Blob, and File controls.',
+    'Records a MediaStream with duration, max-duration, MIME, bitrate, Blob, and File controls.',
   ],
+  ['useCameraPermissions()', 'Permission probe for preflight camera UI and unsupported browsers.'],
+  ['formatDuration()', 'Formats recorder durations as compact timer labels.'],
   ['getSupportedMimeType()', 'Finds the first recorder MIME type supported by the browser.'],
   ['captureFrame()', 'Low-level canvas, Data URL, and Blob capture utility.'],
   ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
@@ -53,6 +62,7 @@ const capabilityItems = [
   'Preview camera streams in React without owning raw media setup on every screen',
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
   'Record video streams with bitrate controls, cancel, Blob, and File output',
+  'Show recorder duration and enforce max recording duration',
   'Preview recorded Blobs with safe object URL cleanup',
   'Switch cameras by exact device ID after users choose a device',
   'Switch front and back cameras by ideal facing mode',
@@ -60,6 +70,7 @@ const capabilityItems = [
   'Separate local preview mute from microphone tracks',
   'Apply advanced video track constraints when the browser and device support them',
   'Read typed permission, device, and browser support states',
+  'Probe camera permission before rendering full capture workflows',
   'Handle blocked canvas capture and unavailable cameras without crashing the UI',
 ];
 
@@ -98,8 +109,9 @@ const guideItems = [
 
 function LiveDemo() {
   const [capture, setCapture] = useState<Blob | null>(null);
+  const permissions = useCameraPermissions({ audio: true });
   const camera = useWebcam({
-    audio: false,
+    audio: true,
     startOnMount: false,
     videoConstraints: {
       width: { ideal: 1280 },
@@ -107,7 +119,14 @@ function LiveDemo() {
       facingMode: { ideal: 'user' },
     },
   });
+  const recorder = useMediaRecorder({
+    fileName: 'react-webcam-kit-demo',
+    fileType: 'webm',
+    maxDuration: 10_000,
+    stream: camera.stream,
+  });
   const captureUrl = useObjectUrl(capture);
+  const playbackUrl = useObjectUrl(recorder.blob);
 
   async function captureFrame() {
     const blob = await camera.getScreenshotBlob({
@@ -122,7 +141,7 @@ function LiveDemo() {
     <section className="section live-demo" id="demo">
       <div className="section__intro">
         <p className="section-label">Live demo</p>
-        <h2>Try the real camera hooks in the browser.</h2>
+        <h2>Try preview, capture, permissions, and recording in one browser demo.</h2>
       </div>
       <div className="live-demo__layout">
         <div className="live-demo__preview">
@@ -142,14 +161,21 @@ function LiveDemo() {
             </div>
             <div>
               <dt>Permission</dt>
-              <dd>{camera.permission}</dd>
+              <dd>{permissions.permission}</dd>
             </div>
             <div>
-              <dt>Facing mode</dt>
-              <dd>{camera.selectedFacingMode ?? 'default'}</dd>
+              <dt>Recording</dt>
+              <dd>{recorder.status}</dd>
+            </div>
+            <div>
+              <dt>Timer</dt>
+              <dd>{formatDuration(recorder.duration)} / 0:10</dd>
             </div>
           </dl>
           <div className="control-grid" aria-label="Camera demo controls">
+            <button type="button" onClick={() => void permissions.requestPermission()}>
+              Check permission
+            </button>
             <button type="button" onClick={() => void camera.start()}>
               Start
             </button>
@@ -174,13 +200,47 @@ function LiveDemo() {
                 }
               }}
             >
-              Download
+              Download photo
+            </button>
+            <button
+              type="button"
+              disabled={!camera.stream || recorder.status === 'recording'}
+              onClick={() => recorder.start()}
+            >
+              Record
+            </button>
+            <button
+              type="button"
+              disabled={recorder.status !== 'recording'}
+              onClick={recorder.stop}
+            >
+              Stop recording
+            </button>
+            <button
+              type="button"
+              disabled={!recorder.file}
+              onClick={() => {
+                if (recorder.file) {
+                  downloadBlob(recorder.file);
+                }
+              }}
+            >
+              Download video
             </button>
           </div>
+          {recorder.recordingTimeLimitReached ? (
+            <p className="demo-note">The demo recording stopped at the 10 second limit.</p>
+          ) : null}
           {captureUrl ? (
             <figure className="capture-result">
               <img src={captureUrl} alt="Captured camera frame" />
               <figcaption>Latest captured Blob preview</figcaption>
+            </figure>
+          ) : null}
+          {playbackUrl ? (
+            <figure className="capture-result">
+              <video src={playbackUrl} controls />
+              <figcaption>Latest recorded video preview</figcaption>
             </figure>
           ) : null}
         </div>
@@ -225,11 +285,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.3.3</dt>
+              <dt>0.4.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>17</dt>
+              <dt>19</dt>
               <dd>Public exports</dd>
             </div>
             <div>

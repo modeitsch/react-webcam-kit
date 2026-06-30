@@ -14,10 +14,12 @@ npm install react-webcam-kit
 
 - `<Webcam />`: drop-in React preview component with ref methods for stream control, screenshots, device switching, and facing mode switching.
 - `useWebcam()`: hook for custom camera UI, stream lifecycle, status, permission state, typed media errors, screenshots, device switching, and advanced track constraints.
+- `useCameraPermissions()`: hook for permission preflight UI, unsupported browser state, and safe permission probes that stop temporary streams.
 - `useDevices()`: hook for video/audio input enumeration with arrays, maps, counts, permission state, errors, and refresh.
-- `useMediaRecorder()`: hook for recording an active `MediaStream` with pause/resume/cancel, Blob/File output, chunks, bitrate controls, MIME controls, and audio mute controls.
+- `useMediaRecorder()`: hook for recording an active `MediaStream` with duration, maxDuration, pause/resume/cancel, Blob/File output, chunks, bitrate controls, MIME controls, and audio mute controls.
 - `useObjectUrl()`: hook for safe Blob, File, and MediaSource object URLs with cleanup.
 - `downloadBlob()`: utility for downloading Blob or File values.
+- `formatDuration()`: utility for formatting recorder durations as `m:ss`.
 - `captureFrame()`: low-level capture from an `HTMLVideoElement` as Data URL, Blob, canvas, or ImageData.
 - `getSupportedMimeType()`: utility for choosing a browser-supported MediaRecorder MIME type.
 - `normalizeMediaError()`: utility for typed permission, device, security, overconstrained, and browser support errors.
@@ -28,6 +30,7 @@ npm install react-webcam-kit
 - React screenshot capture
 - Avatar capture and upload
 - React camera recording
+- Recorder duration timers and recording time limits
 - Front/back mobile camera switching
 - Camera and microphone device picker UIs
 - MediaRecorder wrappers

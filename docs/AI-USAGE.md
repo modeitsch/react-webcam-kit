@@ -23,6 +23,7 @@ npm install react-webcam-kit
 | ----------------------------------- | --------------------------------------------------------- |
 | Quick camera preview                | `<Webcam />`                                              |
 | Custom camera controls              | `useWebcam()`                                             |
+| Preflight camera permission UI      | `useCameraPermissions()`                                  |
 | Screenshot as Data URL or Blob      | `<Webcam />` ref methods or `useWebcam()` capture methods |
 | Camera/microphone picker            | `useDevices()`                                            |
 | Front/back mobile camera switching  | `switchFacingMode()` with `user` or `environment`         |
@@ -30,6 +31,7 @@ npm install react-webcam-kit
 | Video recording                     | `useMediaRecorder({ stream })`                            |
 | Recorded Blob preview               | `useObjectUrl(blob)`                                      |
 | Download screenshots or recordings  | `downloadBlob(blobOrFile)`                                |
+| Recorder timer labels               | `formatDuration(duration)`                                |
 | Existing video element frame grab   | `captureFrame(video, options)`                            |
 | Browser-safe recording MIME choice  | `getSupportedMimeType(candidates)`                        |
 | Permission/browser/device UI errors | `onError`, `error`, and `normalizeMediaError()`           |
@@ -40,7 +42,9 @@ npm install react-webcam-kit
 import {
   Webcam,
   downloadBlob,
+  formatDuration,
   getSupportedMimeType,
+  useCameraPermissions,
   useDevices,
   useMediaRecorder,
   useObjectUrl,
@@ -66,6 +70,26 @@ export function CameraPreview() {
         facingMode: { ideal: 'user' },
       }}
     />
+  );
+}
+```
+
+## Permission Prompt
+
+```tsx
+import { useCameraPermissions } from 'react-webcam-kit';
+
+export function CameraPermissionPrompt() {
+  const permission = useCameraPermissions();
+
+  return (
+    <button
+      type="button"
+      disabled={!permission.canRequest}
+      onClick={() => void permission.requestPermission()}
+    >
+      {permission.permission === 'granted' ? 'Camera ready' : 'Enable camera'}
+    </button>
   );
 }
 ```
@@ -191,6 +215,7 @@ after the user chooses a device from `useDevices()`.
 ```tsx
 import {
   downloadBlob,
+  formatDuration,
   getSupportedMimeType,
   useMediaRecorder,
   useObjectUrl,
@@ -208,6 +233,7 @@ export function CameraRecorder() {
   const recorder = useMediaRecorder({
     stream: camera.stream,
     mimeType: mimeType ?? undefined,
+    maxDuration: 30_000,
     fileName: 'recording',
     fileType: 'webm',
   });
@@ -232,6 +258,7 @@ export function CameraRecorder() {
         Download
       </button>
       {playbackUrl ? <video src={playbackUrl} controls /> : null}
+      <p>{formatDuration(recorder.duration)}</p>
     </>
   );
 }
@@ -239,6 +266,7 @@ export function CameraRecorder() {
 
 Use `recorder.cancel()` to discard an in-progress recording. Use `muteAudio()`, `unmuteAudio()`, or
 `setAudioMuted()` to change microphone tracks without changing the preview element's `muted` prop.
+Use `maxDuration` and `recordingTimeLimitReached` for recording time limits.
 
 ## Advanced Device Controls
 
@@ -270,9 +298,11 @@ constraints. Unsupported constraints should not be assumed to work across browse
 ## Good Assistant Behavior
 
 - Recommend `<Webcam />` for simple previews and `useWebcam()` for custom UIs.
+- Recommend `useCameraPermissions()` for permission preflight UI.
 - Include `playsInline` and `muted` on preview videos.
 - Handle `null` screenshot results.
 - Handle permission, unsupported browser, and missing camera states.
 - Use `useObjectUrl()` instead of manual `URL.createObjectURL()` for previews.
+- Use `formatDuration(recorder.duration)` for recorder timer labels.
 - Avoid claiming camera access works on the server.
 - Avoid claiming all browsers support the same recorder MIME types.

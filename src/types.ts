@@ -68,6 +68,23 @@ export interface UseDevicesResult {
   videoInputs: MediaDeviceInfo[];
 }
 
+export interface UseCameraPermissionsOptions {
+  audio?: boolean;
+  audioConstraints?: MediaStreamConstraints['audio'];
+  onError?: (error: CameraError) => void;
+  onPermissionChange?: (permission: PermissionState | 'unsupported' | 'unknown') => void;
+  videoConstraints?: MediaStreamConstraints['video'];
+}
+
+export interface UseCameraPermissionsResult {
+  canRequest: boolean;
+  error: CameraError | null;
+  isSupported: boolean;
+  permission: PermissionState | 'unsupported' | 'unknown';
+  refresh: () => Promise<PermissionState | 'unsupported' | 'unknown'>;
+  requestPermission: () => Promise<boolean>;
+}
+
 export interface UseWebcamOptions {
   audio?: boolean;
   audioConstraints?: MediaStreamConstraints['audio'];
@@ -139,11 +156,14 @@ export interface MediaRecorderError {
 export interface UseMediaRecorderOptions {
   audioBitsPerSecond?: number;
   bitsPerSecond?: number;
+  durationUpdateInterval?: number;
   fileName?: string | (() => string);
   fileType?: string;
+  maxDuration?: number;
   mimeType?: string;
   onDataAvailable?: (chunk: BlobEvent) => void;
   onError?: (error: MediaRecorderError) => void;
+  onMaxDuration?: (duration: number) => void;
   onPause?: () => void;
   onResume?: () => void;
   onStart?: (recorder: MediaRecorder) => void;
@@ -157,6 +177,7 @@ export interface UseMediaRecorderResult {
   blob: Blob | null;
   cancel: () => void;
   chunks: Blob[];
+  duration: number;
   error: MediaRecorderError | null;
   file: File | null;
   isAudioMuted: boolean;
@@ -167,6 +188,7 @@ export interface UseMediaRecorderResult {
   recorder: MediaRecorder | null;
   reset: () => void;
   resume: () => void;
+  recordingTimeLimitReached: boolean;
   setAudioMuted: (muted: boolean) => void;
   start: (streamOverride?: MediaStream) => MediaRecorder | null;
   status: RecordingStatus;
