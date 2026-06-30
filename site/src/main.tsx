@@ -75,18 +75,11 @@ const qualityItems = [
 ];
 
 const guideItems = [
-  [
-    'React webcam capture',
-    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-WEBCAM-CAPTURE.md',
-  ],
-  [
-    'React camera recording',
-    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-CAMERA-RECORDING.md',
-  ],
-  [
-    'Front and back camera switching',
-    'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/REACT-FRONT-BACK-CAMERA.md',
-  ],
+  ['React webcam capture', './react-webcam-capture/'],
+  ['React camera recording', './react-camera-recording/'],
+  ['Front and back camera switching', './react-front-back-camera/'],
+  ['React avatar capture', './react-avatar-capture/'],
+  ['React getUserMedia hooks', './react-getusermedia-hooks/'],
   [
     'Migration guide',
     'https://github.com/modeitsch/react-webcam-kit/blob/master/docs/MIGRATION.md',
@@ -216,10 +209,10 @@ function App() {
       <section className="hero" id="top">
         <div className="hero__content">
           <p className="eyebrow">React camera toolkit</p>
-          <h1>Webcam APIs that feel maintained.</h1>
+          <h1>React webcam capture and recording APIs.</h1>
           <p className="lead">
-            A professional React package for camera preview, screenshots, device switching, media
-            cleanup, and typed browser errors.
+            A professional React webcam package for camera preview, screenshots, video recording,
+            device switching, getUserMedia cleanup, and typed browser errors.
           </p>
           <div className="actions" aria-label="Primary actions">
             <a className="button button--primary" href="#install">
@@ -232,7 +225,7 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.3.2</dt>
+              <dt>0.3.3</dt>
               <dd>Latest release</dd>
             </div>
             <div>
@@ -295,7 +288,8 @@ function App() {
           <h2>Small package, familiar React ergonomics.</h2>
           <p>
             Install the package, import the component or hooks, and keep the browser media lifecycle
-            under your control.
+            under your control for React webcam capture, camera recording, and mobile camera
+            switching.
           </p>
         </div>
         <div className="code-stack" aria-label="Installation and usage examples">
@@ -363,7 +357,7 @@ function App() {
       <section className="section guides" id="guides">
         <div className="section__intro">
           <p className="section-label">Guides</p>
-          <h2>Search-friendly docs for common camera jobs.</h2>
+          <h2>Search-friendly docs for common React camera jobs.</h2>
         </div>
         <div className="guide-grid">
           {guideItems.map(([label, href]) => (

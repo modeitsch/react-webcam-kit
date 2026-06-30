@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.3
+
+- Added crawlable GitHub Pages landing pages for React webcam capture, camera recording,
+  front/back camera switching, avatar capture, and getUserMedia hooks.
+- Added SEO metadata, canonical links, Open Graph tags, Twitter metadata, and JSON-LD to the docs
+  site.
+- Expanded the sitemap with use-case pages and refreshed README/package discovery wording.
+
 ## 0.3.2
 
 - Added `llms.txt` and `llms-full.txt` package context files for AI-assisted discovery.

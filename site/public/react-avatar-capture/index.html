@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Avatar Capture - Upload webcam profile photos</title>
+    <meta
+      name="description"
+      content="Build a React avatar capture flow with webcam preview, JPEG Blob capture, File conversion, and upload-ready FormData."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-avatar-capture/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React avatar capture</p>
+      <h1>Build avatar capture with a React webcam.</h1>
+      <p class="lead">
+        Capture profile photos, convert them to Files, and upload them with `FormData` using the
+        `Webcam` component or the lower-level `useWebcam()` hook.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Upload a captured avatar</h2>
+      <pre><code>import { useRef } from 'react';
+import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+
+export function AvatarCapture() {
+  const webcamRef = useRef&lt;WebcamHandle&gt;(null);
+
+  async function saveAvatar() {
+    const blob = await webcamRef.current?.getScreenshotBlob({
+      format: 'image/jpeg',
+      quality: 0.9,
+      width: 512,
+      height: 512,
+    });
+
+    if (!blob) return;
+
+    const form = new FormData();
+    form.set('avatar', new File([blob], 'avatar.jpg', { type: blob.type }));
+
+    await fetch('/api/avatar', {
+      method: 'POST',
+      body: form,
+    });
+  }
+
+  return (
+    &lt;&gt;
+      &lt;Webcam ref={webcamRef} audio={false} mirrored screenshotFormat="image/jpeg" /&gt;
+      &lt;button type="button" onClick={() =&gt; void saveAvatar()}&gt;Save avatar&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Good production defaults</h2>
+      <ul>
+        <li>Use JPEG for profile photos unless transparency is required.</li>
+        <li>Handle `null` capture results for blocked canvas or not-ready video states.</li>
+        <li>Stop streams when users close the avatar modal.</li>
+        <li>Use `mirrored` for front-facing preview when it matches user expectations.</li>
+      </ul>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-front-back-camera/">Front/back camera switching</a>
+        <a href="../react-camera-recording/">React camera recording</a>
+      </div>
+    </main>
+  </body>
+</html>

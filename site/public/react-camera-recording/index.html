@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Camera Recording - MediaRecorder hook for React</title>
+    <meta
+      name="description"
+      content="Record webcam video in React with useMediaRecorder, Blob/File output, MIME helpers, pause/resume, cancel, and safe preview URLs."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-camera-recording/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React camera recording</p>
+      <h1>Record webcam video in React.</h1>
+      <p class="lead">
+        Use `useWebcam()` for the camera stream and `useMediaRecorder()` for recording controls,
+        chunks, final Blob/File output, and browser-aware MIME configuration.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Record and download a video</h2>
+      <pre><code>import {
+  downloadBlob,
+  getSupportedMimeType,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+} from 'react-webcam-kit';
+
+const mimeType = getSupportedMimeType([
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+]);
+
+export function Recorder() {
+  const camera = useWebcam({ audio: true });
+  const recorder = useMediaRecorder({
+    stream: camera.stream,
+    mimeType: mimeType ?? undefined,
+    fileName: 'camera-recording',
+    fileType: 'webm',
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    &lt;&gt;
+      &lt;video ref={camera.videoRef} autoPlay playsInline muted /&gt;
+      &lt;button onClick={() =&gt; recorder.start()}&gt;Record&lt;/button&gt;
+      &lt;button onClick={recorder.stop}&gt;Stop&lt;/button&gt;
+      &lt;button disabled={!recorder.file} onClick={() =&gt; recorder.file && downloadBlob(recorder.file)}&gt;
+        Download
+      &lt;/button&gt;
+      {playbackUrl ? &lt;video src={playbackUrl} controls /&gt; : null}
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Recording features</h2>
+      <ul>
+        <li>Start, stop, pause, resume, reset, and cancel recording sessions.</li>
+        <li>Expose chunks, final Blob, optional File output, status, and errors.</li>
+        <li>Mute and unmute audio tracks without changing preview video mute state.</li>
+        <li>Choose supported MediaRecorder MIME types before recording.</li>
+      </ul>
+
+      <p class="note">
+        MediaRecorder support varies by browser. Use `getSupportedMimeType()` before forcing a MIME
+        type in production apps.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-front-back-camera/">Front/back camera switching</a>
+        <a href="../react-getusermedia-hooks/">React getUserMedia hooks</a>
+      </div>
+    </main>
+  </body>
+</html>

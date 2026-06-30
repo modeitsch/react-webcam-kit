@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Webcam Capture - Screenshot photos with react-webcam-kit</title>
+    <meta
+      name="description"
+      content="Capture webcam screenshots in React as Data URLs, Blobs, canvases, or ImageData with react-webcam-kit."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-webcam-capture/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React webcam capture</p>
+      <h1>Capture webcam screenshots in React.</h1>
+      <p class="lead">
+        `react-webcam-kit` gives React apps a typed webcam component and hooks for capturing still
+        frames as Data URLs, Blobs, canvases, or ImageData.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Capture a photo as a Blob</h2>
+      <pre><code>import { useRef } from 'react';
+import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+
+export function PhotoCapture() {
+  const webcamRef = useRef&lt;WebcamHandle&gt;(null);
+
+  async function capture() {
+    const blob = await webcamRef.current?.getScreenshotBlob({
+      format: 'image/jpeg',
+      quality: 0.9,
+      width: 1280,
+    });
+
+    if (!blob) return;
+    console.log(new File([blob], 'capture.jpg', { type: blob.type }));
+  }
+
+  return (
+    &lt;&gt;
+      &lt;Webcam ref={webcamRef} audio={false} screenshotFormat="image/jpeg" /&gt;
+      &lt;button type="button" onClick={() =&gt; void capture()}&gt;Capture&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Why use this instead of raw canvas code?</h2>
+      <ul>
+        <li>Handles camera start, stop, restart, and unmount cleanup.</li>
+        <li>Supports Data URL, Blob, canvas, and ImageData output.</li>
+        <li>Normalizes browser camera errors for better UI messages.</li>
+        <li>Works with TypeScript and React 18 or React 19.</li>
+      </ul>
+
+      <p class="note">
+        Camera access requires HTTPS or localhost. Screenshot methods can return `null` if the video
+        is not ready or the browser blocks canvas capture.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-avatar-capture/">React avatar capture</a>
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-getusermedia-hooks/">React getUserMedia hooks</a>
+      </div>
+    </main>
+  </body>
+</html>

@@ -2,12 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/</loc>
+    <lastmod>2026-06-30</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-webcam-capture/</loc>
+    <lastmod>2026-06-30</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-camera-recording/</loc>
+    <lastmod>2026-06-30</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-front-back-camera/</loc>
+    <lastmod>2026-06-30</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-avatar-capture/</loc>
+    <lastmod>2026-06-30</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/</loc>
+    <lastmod>2026-06-30</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/llms.txt</loc>
+    <lastmod>2026-06-30</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/llms-full.txt</loc>
+    <lastmod>2026-06-30</lastmod>
   </url>
 </urlset>
-

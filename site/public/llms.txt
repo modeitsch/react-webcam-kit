@@ -63,6 +63,11 @@ import {
 - Package: https://www.npmjs.com/package/react-webcam-kit
 - Repository: https://github.com/modeitsch/react-webcam-kit
 - Website: https://modeitsch.com/react-webcam-kit/
+- React webcam capture guide: https://modeitsch.com/react-webcam-kit/react-webcam-capture/
+- React camera recording guide: https://modeitsch.com/react-webcam-kit/react-camera-recording/
+- React front/back camera guide: https://modeitsch.com/react-webcam-kit/react-front-back-camera/
+- React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
+- React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/
 - Full LLM context: https://modeitsch.com/react-webcam-kit/llms-full.txt
 - API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
 - AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md
@@ -71,4 +76,3 @@ import {
 - Compatibility: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/COMPATIBILITY.md
 - Migration guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/MIGRATION.md
 - Security policy: https://github.com/modeitsch/react-webcam-kit/blob/master/SECURITY.md
-

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Front Back Camera Switching - Mobile camera hook</title>
+    <meta
+      name="description"
+      content="Switch between front and back mobile cameras in React with ideal facingMode constraints and react-webcam-kit."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-front-back-camera/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React front/back camera</p>
+      <h1>Switch front and back cameras in React.</h1>
+      <p class="lead">
+        Mobile browsers are sensitive to strict camera constraints. `react-webcam-kit` exposes
+        `switchFacingMode()` for front and back camera flows using safer ideal constraints.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Mobile camera switcher</h2>
+      <pre><code>import { useWebcam } from 'react-webcam-kit';
+
+export function MobileCamera() {
+  const camera = useWebcam({
+    audio: false,
+    videoConstraints: {
+      facingMode: { ideal: 'user' },
+    },
+  });
+
+  return (
+    &lt;&gt;
+      &lt;video ref={camera.videoRef} autoPlay playsInline muted /&gt;
+      &lt;button onClick={() =&gt; void camera.switchFacingMode('environment')}&gt;
+        Back camera
+      &lt;/button&gt;
+      &lt;button onClick={() =&gt; void camera.switchFacingMode('user')}&gt;
+        Front camera
+      &lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>When to use `switchDevice()`</h2>
+      <p>
+        Use `switchDevice(deviceId)` after the user chooses a camera from `useDevices()`. Use
+        `switchFacingMode('user')` or `switchFacingMode('environment')` when the app only needs
+        front or back camera intent.
+      </p>
+
+      <p class="note">
+        Use `playsInline` on mobile preview video elements. Without it, some mobile browsers may
+        force fullscreen video behavior.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-avatar-capture/">React avatar capture</a>
+        <a href="../react-getusermedia-hooks/">React getUserMedia hooks</a>
+      </div>
+    </main>
+  </body>
+</html>

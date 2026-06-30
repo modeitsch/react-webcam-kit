@@ -8,12 +8,12 @@
 
 ![react-webcam-kit logo](./docs/assets/logo.svg)
 
-A modern React camera toolkit for webcam preview, screenshots, device switching, and safe media
-stream cleanup.
+A modern React webcam toolkit for camera preview, screenshot capture, video recording, device
+switching, front/back mobile camera flows, and safe `getUserMedia` cleanup.
 
 `react-webcam-kit` gives React apps a small, typed API over browser camera behavior. Use the
-component when you want a ready preview, or the hooks and utilities when you need a custom camera
-experience.
+component when you want a ready webcam preview, or the hooks and utilities when you need custom
+React camera capture, MediaRecorder, avatar upload, or mobile camera switching flows.
 
 ## Highlights
 
@@ -366,6 +366,11 @@ Blob, canvas, or ImageData.
 - [AI Usage Guide](./docs/AI-USAGE.md)
 - [LLM Context](./llms.txt)
 - [Full LLM Context](./llms-full.txt)
+- [React Webcam Capture](https://modeitsch.com/react-webcam-kit/react-webcam-capture/)
+- [React Camera Recording](https://modeitsch.com/react-webcam-kit/react-camera-recording/)
+- [React Front/Back Camera](https://modeitsch.com/react-webcam-kit/react-front-back-camera/)
+- [React Avatar Capture](https://modeitsch.com/react-webcam-kit/react-avatar-capture/)
+- [React getUserMedia Hooks](https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/)
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)

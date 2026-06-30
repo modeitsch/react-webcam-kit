@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React getUserMedia Hook - useWebcam camera lifecycle</title>
+    <meta
+      name="description"
+      content="Use getUserMedia in React with a typed hook for stream lifecycle, permission state, device switching, screenshots, and cleanup."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React getUserMedia hook</p>
+      <h1>Use getUserMedia safely in React.</h1>
+      <p class="lead">
+        `useWebcam()` wraps browser camera lifecycle work: requesting streams, attaching a video
+        ref, tracking permission state, switching devices, capturing screenshots, and stopping
+        tracks.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Custom camera controls</h2>
+      <pre><code>import { useWebcam } from 'react-webcam-kit';
+
+export function CameraControls() {
+  const camera = useWebcam({
+    audio: false,
+    startOnMount: false,
+    onError(error) {
+      console.error(error.type, error.message);
+    },
+  });
+
+  return (
+    &lt;&gt;
+      &lt;video ref={camera.videoRef} autoPlay playsInline muted /&gt;
+      &lt;button onClick={() =&gt; void camera.start()}&gt;Start&lt;/button&gt;
+      &lt;button onClick={camera.stop}&gt;Stop&lt;/button&gt;
+      &lt;button onClick={() =&gt; console.log(camera.getScreenshot())}&gt;Capture&lt;/button&gt;
+      &lt;p&gt;Status: {camera.status}&lt;/p&gt;
+      &lt;p&gt;Permission: {camera.permission}&lt;/p&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>What the hook handles</h2>
+      <ul>
+        <li>Secure browser checks and normalized camera errors.</li>
+        <li>Media stream start, stop, restart, and unmount cleanup.</li>
+        <li>Exact camera device switching after device selection.</li>
+        <li>Front/back facing-mode switching for mobile camera flows.</li>
+        <li>Data URL, Blob, canvas, and ImageData capture helpers.</li>
+      </ul>
+
+      <p class="note">
+        Camera access requires HTTPS or localhost. In SSR frameworks, render camera UI on the
+        client.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-front-back-camera/">Front/back camera switching</a>
+      </div>
+    </main>
+  </body>
+</html>
