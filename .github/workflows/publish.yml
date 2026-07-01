@@ -1,11 +1,18 @@
 name: Publish to npm
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -21,16 +28,35 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
 
+      - name: Use npm with trusted publishing support
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package version $PACKAGE_VERSION."
+            exit 1
+          fi
+
       - name: Verify package
         run: npm run verify
 
       - name: Publish package with provenance
-        run: npm publish --provenance
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes

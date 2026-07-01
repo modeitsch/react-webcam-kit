@@ -3,6 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/react-webcam-kit.svg)](https://www.npmjs.com/package/react-webcam-kit)
 [![npm downloads](https://img.shields.io/npm/dm/react-webcam-kit.svg)](https://www.npmjs.com/package/react-webcam-kit)
 [![CI](https://github.com/modeitsch/react-webcam-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/modeitsch/react-webcam-kit/actions/workflows/ci.yml)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/react-webcam-kit?label=minzip)](https://bundlephobia.com/package/react-webcam-kit)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
@@ -561,6 +562,7 @@ Blob, canvas, or ImageData.
 
 ## Examples
 
+- [Camera recorder starter](./examples/camera-recorder)
 - [Basic Vite example](./examples/basic)
 - [Avatar capture](./examples/avatar-capture)
 - [Video recorder](./examples/vite-recorder)
@@ -586,7 +588,24 @@ Available scripts:
 
 ## Publishing
 
-Before publishing:
+Release from a version tag:
+
+```bash
+git tag v0.7.0
+git push origin v0.7.0
+```
+
+The publish workflow verifies the package, publishes to npm with provenance, and creates the GitHub
+release. Configure npm trusted publishing for `.github/workflows/publish.yml` before using the tag
+flow:
+
+- Publisher: GitHub Actions
+- Repository owner: `modeitsch`
+- Repository name: `react-webcam-kit`
+- Workflow file: `.github/workflows/publish.yml`
+- Environment: leave empty unless you add one to the workflow
+
+Before local dry-runs:
 
 ```bash
 npm run verify

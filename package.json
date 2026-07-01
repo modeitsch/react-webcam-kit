@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/modeitsch/react-webcam-kit.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/modeitsch/react-webcam-kit/issues"
   },
