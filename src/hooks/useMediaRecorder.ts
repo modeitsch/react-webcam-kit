@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   MediaRecorderError,
+  RecordingQualityPreset,
+  RecordingQualityPresetConfig,
   RecordingStatus,
   UseMediaRecorderOptions,
   UseMediaRecorderResult,
@@ -12,6 +14,44 @@ import {
 } from '../recording/codecSupport';
 
 export const DEFAULT_RECORDER_MIME_TYPES = DEFAULT_VIDEO_RECORDER_MIME_TYPES;
+
+export const RECORDING_QUALITY_PRESETS = {
+  low: {
+    audioBitsPerSecond: 48_000,
+    frameRate: 20,
+    height: 360,
+    videoBitsPerSecond: 450_000,
+    width: 640,
+  },
+  medium: {
+    audioBitsPerSecond: 64_000,
+    frameRate: 24,
+    height: 480,
+    videoBitsPerSecond: 900_000,
+    width: 854,
+  },
+  high: {
+    audioBitsPerSecond: 96_000,
+    frameRate: 30,
+    height: 540,
+    videoBitsPerSecond: 1_500_000,
+    width: 960,
+  },
+  hd: {
+    audioBitsPerSecond: 128_000,
+    frameRate: 30,
+    height: 720,
+    videoBitsPerSecond: 2_500_000,
+    width: 1280,
+  },
+  'full-hd': {
+    audioBitsPerSecond: 160_000,
+    frameRate: 30,
+    height: 1080,
+    videoBitsPerSecond: 4_500_000,
+    width: 1920,
+  },
+} satisfies Record<RecordingQualityPreset, RecordingQualityPresetConfig>;
 
 function isMediaRecorderSupported() {
   return typeof MediaRecorder !== 'undefined';
@@ -45,17 +85,32 @@ export function getSupportedMimeType(candidates = DEFAULT_RECORDER_MIME_TYPES) {
   return getSupportedRecorderMimeTypes(candidates)[0] ?? null;
 }
 
+export function getRecordingPresetConstraints(
+  quality: RecordingQualityPreset,
+): MediaTrackConstraints {
+  const preset = RECORDING_QUALITY_PRESETS[quality];
+
+  return {
+    frameRate: { ideal: preset.frameRate },
+    height: { ideal: preset.height },
+    width: { ideal: preset.width },
+  };
+}
+
 function getTime() {
   return Date.now();
 }
 
 function buildRecorderOptions(options: UseMediaRecorderOptions): MediaRecorderOptions {
   const mimeType = options.mimeType ?? getSupportedMimeType() ?? undefined;
+  const preset = options.quality ? RECORDING_QUALITY_PRESETS[options.quality] : null;
 
   return {
+    ...(preset ? { audioBitsPerSecond: preset.audioBitsPerSecond } : {}),
     ...(options.audioBitsPerSecond ? { audioBitsPerSecond: options.audioBitsPerSecond } : {}),
     ...(options.bitsPerSecond ? { bitsPerSecond: options.bitsPerSecond } : {}),
     ...(mimeType ? { mimeType } : {}),
+    ...(preset ? { videoBitsPerSecond: preset.videoBitsPerSecond } : {}),
     ...(options.videoBitsPerSecond ? { videoBitsPerSecond: options.videoBitsPerSecond } : {}),
   };
 }

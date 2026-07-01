@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+- Added recorder quality presets with `quality`, `RECORDING_QUALITY_PRESETS`, and
+  `getRecordingPresetConstraints()`.
+- Added `blobToFile()` and `createUploadFormData()` helpers for upload-ready screenshot and
+  recording flows.
+- Added docs for audio-only recording, recording quality choices, upload workflows, and QR/barcode
+  scanner integrations.
+- Added a crawlable React QR barcode scanner guide to the GitHub Pages site.
+
 ## 0.4.0
 
 - Added `useCameraPermissions()` for client-side permission probes and unsupported-browser state.

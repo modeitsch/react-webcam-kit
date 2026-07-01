@@ -5,13 +5,17 @@ export { useCameraPermissions } from './hooks/useCameraPermissions';
 export { useDevices } from './hooks/useDevices';
 export {
   DEFAULT_RECORDER_MIME_TYPES,
+  getRecordingPresetConstraints,
   getSupportedMimeType,
+  RECORDING_QUALITY_PRESETS,
   useMediaRecorder,
 } from './hooks/useMediaRecorder';
 export { useObjectUrl } from './hooks/useObjectUrl';
 export { useWebcam } from './hooks/useWebcam';
 export { downloadBlob } from './recording/downloadBlob';
 export { formatDuration } from './recording/formatDuration';
+export { blobToFile } from './upload/blobToFile';
+export { createUploadFormData } from './upload/createUploadFormData';
 export {
   DEFAULT_AUDIO_RECORDER_MIME_TYPES,
   DEFAULT_VIDEO_RECORDER_MIME_TYPES,
@@ -26,7 +30,10 @@ export type {
   CameraStatus,
   CaptureFrameOptions,
   CaptureFrameResultType,
+  CreateUploadFormDataOptions,
   MediaRecorderError,
+  RecordingQualityPreset,
+  RecordingQualityPresetConfig,
   RecordingStatus,
   ScreenshotFormat,
   ScreenshotOptions,

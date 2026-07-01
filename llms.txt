@@ -1,8 +1,8 @@
 # react-webcam-kit
 
-> Modern React webcam toolkit for camera preview, screenshots, recording, device switching, front/back camera switching, and safe media cleanup.
+> Modern React webcam toolkit for camera preview, screenshots, recording, upload-ready camera files, device switching, front/back camera switching, and safe media cleanup.
 
-react-webcam-kit is a small TypeScript React package for browser camera work. It wraps `getUserMedia`, `MediaRecorder`, canvas capture, and media device enumeration with component and hook APIs.
+react-webcam-kit is a small TypeScript React package for browser camera work. It wraps `getUserMedia`, `MediaRecorder`, canvas capture, media device enumeration, recording quality presets, and upload helpers with component and hook APIs.
 
 ## Install
 
@@ -19,7 +19,10 @@ npm install react-webcam-kit
 - `useMediaRecorder()`: hook for recording an active `MediaStream` with duration, maxDuration, pause/resume/cancel, Blob/File output, chunks, bitrate controls, MIME controls, and audio mute controls.
 - `useObjectUrl()`: hook for safe Blob, File, and MediaSource object URLs with cleanup.
 - `downloadBlob()`: utility for downloading Blob or File values.
+- `blobToFile()`: utility for converting screenshot or recording Blobs into named Files.
+- `createUploadFormData()`: utility for upload-ready `FormData` payloads.
 - `formatDuration()`: utility for formatting recorder durations as `m:ss`.
+- `getRecordingPresetConstraints()`: utility for matching camera constraints to recording quality presets.
 - `captureFrame()`: low-level capture from an `HTMLVideoElement` as Data URL, Blob, canvas, or ImageData.
 - `getSupportedMimeType()`: utility for choosing a browser-supported MediaRecorder MIME type.
 - `normalizeMediaError()`: utility for typed permission, device, security, overconstrained, and browser support errors.
@@ -30,7 +33,12 @@ npm install react-webcam-kit
 - React screenshot capture
 - Avatar capture and upload
 - React camera recording
+- React camera recording upload
+- React audio recorder
+- React QR scanner camera screen
+- React barcode scanner camera screen
 - Recorder duration timers and recording time limits
+- Recording quality presets
 - Front/back mobile camera switching
 - Camera and microphone device picker UIs
 - MediaRecorder wrappers
@@ -51,8 +59,11 @@ npm install react-webcam-kit
 ```tsx
 import {
   Webcam,
+  blobToFile,
+  createUploadFormData,
   downloadBlob,
   getSupportedMimeType,
+  getRecordingPresetConstraints,
   useDevices,
   useMediaRecorder,
   useObjectUrl,
@@ -71,6 +82,7 @@ import {
 - React front/back camera guide: https://modeitsch.com/react-webcam-kit/react-front-back-camera/
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
 - React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/
+- React QR barcode scanner guide: https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/
 - Full LLM context: https://modeitsch.com/react-webcam-kit/llms-full.txt
 - API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
 - AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md

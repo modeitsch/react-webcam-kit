@@ -7,7 +7,11 @@ TypeScript types.
 
 ```ts
 export { Webcam } from 'react-webcam-kit';
+export { RECORDING_QUALITY_PRESETS } from 'react-webcam-kit';
+export { blobToFile } from 'react-webcam-kit';
+export { createUploadFormData } from 'react-webcam-kit';
 export { formatDuration } from 'react-webcam-kit';
+export { getRecordingPresetConstraints } from 'react-webcam-kit';
 export { useCameraPermissions } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
@@ -198,6 +202,7 @@ Use this hook to record an active `MediaStream` and produce a Blob.
 ```tsx
 const recorder = useMediaRecorder({
   stream: camera.stream,
+  quality: 'hd',
   videoBitsPerSecond: 1_500_000,
   audioBitsPerSecond: 96_000,
   timeslice: 1000,
@@ -206,23 +211,24 @@ const recorder = useMediaRecorder({
 
 ### Options
 
-| Option                   | Type                  | Description                                                                       |
-| ------------------------ | --------------------- | --------------------------------------------------------------------------------- |
-| `stream`                 | `MediaStream \| null` | Stream to record. You can also pass a stream to `start(stream)`.                  |
-| `mimeType`               | `string`              | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
-| `fileName`               | `string` or function  | Optional base file name used to create `file` after `stop()`.                     |
-| `fileType`               | `string`              | Optional file extension used with `fileName`.                                     |
-| `maxDuration`            | `number`              | Optional max recording duration in milliseconds.                                  |
-| `durationUpdateInterval` | `number`              | Duration update interval in milliseconds. Defaults to `250`.                      |
-| `bitsPerSecond`          | `number`              | Total target bitrate.                                                             |
-| `videoBitsPerSecond`     | `number`              | Target video bitrate.                                                             |
-| `audioBitsPerSecond`     | `number`              | Target audio bitrate.                                                             |
-| `timeslice`              | `number`              | Optional chunk interval passed to `MediaRecorder.start()`.                        |
-| `onDataAvailable`        | `(event) => void`     | Runs for every recorder chunk.                                                    |
-| `onStart` / `onStop`     | callbacks             | Runs when recording starts and when the final Blob is assembled.                  |
-| `onMaxDuration`          | `(duration) => void`  | Runs when `maxDuration` is reached.                                               |
-| `onPause` / `onResume`   | callbacks             | Runs on recorder pause and resume.                                                |
-| `onError`                | `(error) => void`     | Runs with normalized recorder errors.                                             |
+| Option                   | Type                     | Description                                                                       |
+| ------------------------ | ------------------------ | --------------------------------------------------------------------------------- |
+| `stream`                 | `MediaStream \| null`    | Stream to record. You can also pass a stream to `start(stream)`.                  |
+| `mimeType`               | `string`                 | Preferred recorder MIME type. Defaults to the first supported built-in candidate. |
+| `fileName`               | `string` or function     | Optional base file name used to create `file` after `stop()`.                     |
+| `fileType`               | `string`                 | Optional file extension used with `fileName`.                                     |
+| `quality`                | `RecordingQualityPreset` | Preset audio and video bitrate target. Explicit bitrate options override it.      |
+| `maxDuration`            | `number`                 | Optional max recording duration in milliseconds.                                  |
+| `durationUpdateInterval` | `number`                 | Duration update interval in milliseconds. Defaults to `250`.                      |
+| `bitsPerSecond`          | `number`                 | Total target bitrate.                                                             |
+| `videoBitsPerSecond`     | `number`                 | Target video bitrate.                                                             |
+| `audioBitsPerSecond`     | `number`                 | Target audio bitrate.                                                             |
+| `timeslice`              | `number`                 | Optional chunk interval passed to `MediaRecorder.start()`.                        |
+| `onDataAvailable`        | `(event) => void`        | Runs for every recorder chunk.                                                    |
+| `onStart` / `onStop`     | callbacks                | Runs when recording starts and when the final Blob is assembled.                  |
+| `onMaxDuration`          | `(duration) => void`     | Runs when `maxDuration` is reached.                                               |
+| `onPause` / `onResume`   | callbacks                | Runs on recorder pause and resume.                                                |
+| `onError`                | `(error) => void`        | Runs with normalized recorder errors.                                             |
 
 ### Result
 
@@ -251,12 +257,62 @@ const recorder = useMediaRecorder({
 `cancel()` stops the active recorder and discards collected chunks. It does not create a final Blob
 and does not call `onStop`.
 
+## Recording Quality Presets
+
+Use presets when you want a named target instead of hand-picking recorder bitrates.
+
+```tsx
+import { getRecordingPresetConstraints, useMediaRecorder, useWebcam } from 'react-webcam-kit';
+
+const camera = useWebcam({
+  audio: true,
+  videoConstraints: getRecordingPresetConstraints('hd'),
+});
+
+const recorder = useMediaRecorder({
+  quality: 'hd',
+  stream: camera.stream,
+});
+```
+
+Built-in preset names are `low`, `medium`, `high`, `hd`, and `full-hd`.
+`RECORDING_QUALITY_PRESETS` exposes each preset's `width`, `height`, `frameRate`,
+`audioBitsPerSecond`, and `videoBitsPerSecond`.
+
+`getRecordingPresetConstraints(quality)` returns ideal `width`, `height`, and `frameRate` video
+constraints. Pair it with the same recorder `quality` when you want the camera request and recorder
+bitrate to target the same output tier.
+
 ## `formatDuration(duration)`
 
 Formats a duration in milliseconds as `m:ss`.
 
 ```ts
 formatDuration(65_000); // "1:05"
+```
+
+## Upload Helpers
+
+`blobToFile(blob, fileName?)` converts a `Blob` into a named `File`. If the input is already a
+`File` and no new name is provided, it returns the original file.
+
+```ts
+const file = blobToFile(recordingBlob, 'intro.webm');
+```
+
+`createUploadFormData(blobOrFile, options?)` creates a `FormData` payload with a configurable file
+field, file name, and extra fields.
+
+```ts
+const formData = createUploadFormData(recordingBlob, {
+  fieldName: 'video',
+  fileName: 'intro.webm',
+  fields: {
+    userId: '123',
+  },
+});
+
+await fetch('/api/videos', { method: 'POST', body: formData });
 ```
 
 ## `useObjectUrl(source)`

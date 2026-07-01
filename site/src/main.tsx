@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import {
   downloadBlob,
   formatDuration,
+  getRecordingPresetConstraints,
   useCameraPermissions,
   useMediaRecorder,
   useObjectUrl,
@@ -36,7 +37,7 @@ const featureItems = [
   },
   {
     title: 'Recording helper',
-    body: 'Record the active stream with bitrate controls, browser MIME selection, pause/resume, audio mute, chunks, and final Blob output.',
+    body: 'Record streams with quality presets, browser MIME selection, pause/resume, audio mute, chunks, and final Blob/File output.',
   },
 ];
 
@@ -53,6 +54,12 @@ const apiRows = [
   ],
   ['useCameraPermissions()', 'Permission probe for preflight camera UI and unsupported browsers.'],
   ['formatDuration()', 'Formats recorder durations as compact timer labels.'],
+  [
+    'getRecordingPresetConstraints()',
+    'Returns camera constraints for low, medium, high, HD, and full-HD presets.',
+  ],
+  ['createUploadFormData()', 'Builds upload-ready FormData for screenshot and recording Blobs.'],
+  ['blobToFile()', 'Turns screenshot and recording Blobs into named Files.'],
   ['getSupportedMimeType()', 'Finds the first recorder MIME type supported by the browser.'],
   ['captureFrame()', 'Low-level canvas, Data URL, and Blob capture utility.'],
   ['normalizeMediaError()', 'Typed browser media errors for better user messaging.'],
@@ -62,6 +69,9 @@ const capabilityItems = [
   'Preview camera streams in React without owning raw media setup on every screen',
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
   'Record video streams with bitrate controls, cancel, Blob, and File output',
+  'Use low, medium, high, HD, and full-HD recording quality presets',
+  'Build upload-ready FormData from screenshot and recording Blobs',
+  'Record audio-only streams with the same MediaRecorder hook',
   'Show recorder duration and enforce max recording duration',
   'Preview recorded Blobs with safe object URL cleanup',
   'Switch cameras by exact device ID after users choose a device',
@@ -88,6 +98,7 @@ const qualityItems = [
 const guideItems = [
   ['React webcam capture', './react-webcam-capture/'],
   ['React camera recording', './react-camera-recording/'],
+  ['React QR barcode scanner', './react-qr-barcode-scanner/'],
   ['Front and back camera switching', './react-front-back-camera/'],
   ['React avatar capture', './react-avatar-capture/'],
   ['React getUserMedia hooks', './react-getusermedia-hooks/'],
@@ -114,8 +125,7 @@ function LiveDemo() {
     audio: true,
     startOnMount: false,
     videoConstraints: {
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
+      ...getRecordingPresetConstraints('hd'),
       facingMode: { ideal: 'user' },
     },
   });
@@ -123,6 +133,7 @@ function LiveDemo() {
     fileName: 'react-webcam-kit-demo',
     fileType: 'webm',
     maxDuration: 10_000,
+    quality: 'hd',
     stream: camera.stream,
   });
   const captureUrl = useObjectUrl(capture);
@@ -272,7 +283,7 @@ function App() {
           <h1>React webcam capture and recording APIs.</h1>
           <p className="lead">
             A professional React webcam package for camera preview, screenshots, video recording,
-            device switching, getUserMedia cleanup, and typed browser errors.
+            device switching, upload helpers, getUserMedia cleanup, and typed browser errors.
           </p>
           <div className="actions" aria-label="Primary actions">
             <a className="button button--primary" href="#install">
@@ -285,11 +296,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.4.0</dt>
+              <dt>0.5.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>19</dt>
+              <dt>23</dt>
               <dd>Public exports</dd>
             </div>
             <div>
@@ -318,9 +329,9 @@ function App() {
           </div>
           <div className="demo-shell__controls">
             <span>getScreenshotBlob()</span>
+            <span>quality=&quot;hd&quot;</span>
             <span>switchDevice()</span>
             <span>switchFacingMode()</span>
-            <span>onStop()</span>
           </div>
         </div>
       </section>

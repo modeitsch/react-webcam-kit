@@ -1,6 +1,6 @@
 # react-webcam-kit LLM Context
 
-react-webcam-kit is a TypeScript React package for browser webcam, camera capture, camera recording, device selection, and media cleanup flows.
+react-webcam-kit is a TypeScript React package for browser webcam, camera capture, camera recording, upload-ready files, device selection, and media cleanup flows.
 
 Use this file as compact package context for coding assistants, documentation agents, and search tools. Prefer the linked repository docs for the latest full API reference.
 
@@ -23,18 +23,20 @@ Peer dependency:
 ```tsx
 import {
   Webcam,
+  blobToFile,
   captureFrame,
+  createUploadFormData,
   downloadBlob,
   formatDuration,
+  getRecordingPresetConstraints,
   getSupportedMimeType,
-  isMimeTypeSupported,
   normalizeMediaError,
   useCameraPermissions,
   useDevices,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
-  type MediaError,
+  type CameraError,
   type WebcamHandle,
 } from 'react-webcam-kit';
 ```
@@ -46,9 +48,11 @@ import {
 - Use `useCameraPermissions()` when the app needs a permission prompt before rendering a full camera workflow.
 - Use `useDevices()` when the app needs a camera/microphone picker.
 - Use `useMediaRecorder()` when the app needs to record an active `MediaStream`, show duration, or enforce a max duration.
+- Use `getRecordingPresetConstraints()` with recorder `quality` when the app needs named low, medium, high, HD, or full-HD recording targets.
 - Use `captureFrame()` when the app already owns a video element and only needs capture helpers.
 - Use `useObjectUrl()` when previewing a Blob, File, or MediaSource.
 - Use `downloadBlob()` when saving screenshots or recordings.
+- Use `createUploadFormData()` when uploading screenshot or recording Blobs.
 - Use `formatDuration()` when displaying recorder timer labels.
 - Use MIME helpers before setting `MediaRecorder` MIME types.
 
@@ -56,7 +60,7 @@ import {
 
 ```tsx
 import { useRef } from 'react';
-import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+import { Webcam, createUploadFormData, type WebcamHandle } from 'react-webcam-kit';
 
 export function CameraPreview() {
   const webcamRef = useRef<WebcamHandle>(null);
@@ -71,9 +75,10 @@ export function CameraPreview() {
 
     if (!blob) return;
 
-    const file = new File([blob], 'avatar.jpg', { type: blob.type });
-    const body = new FormData();
-    body.set('avatar', file);
+    const body = createUploadFormData(blob, {
+      fieldName: 'avatar',
+      fileName: 'avatar.jpg',
+    });
 
     await fetch('/api/avatar', {
       method: 'POST',
@@ -221,7 +226,15 @@ Use `switchFacingMode()` for mobile front/back camera flows. It uses ideal `faci
 ## Recording
 
 ```tsx
-import { downloadBlob, getSupportedMimeType, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
+import {
+  createUploadFormData,
+  downloadBlob,
+  getRecordingPresetConstraints,
+  getSupportedMimeType,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+} from 'react-webcam-kit';
 
 const mimeType = getSupportedMimeType([
   'video/webm;codecs=vp9,opus',
@@ -230,13 +243,16 @@ const mimeType = getSupportedMimeType([
 ]);
 
 export function Recorder() {
-  const camera = useWebcam({ audio: true });
+  const camera = useWebcam({
+    audio: true,
+    videoConstraints: getRecordingPresetConstraints('hd'),
+  });
   const recorder = useMediaRecorder({
     stream: camera.stream,
     mimeType: mimeType ?? undefined,
     fileName: 'camera-recording',
     fileType: 'webm',
-    videoBitsPerSecond: 1_500_000,
+    quality: 'hd',
   });
   const playbackUrl = useObjectUrl(recorder.blob);
 
@@ -274,6 +290,29 @@ export function Recorder() {
 ```
 
 `useMediaRecorder()` returns `status`, `blob`, `file`, `chunks`, `error`, `isSupported`, `isAudioMuted`, `start`, `stop`, `pause`, `resume`, `reset`, `cancel`, `muteAudio`, `unmuteAudio`, and `setAudioMuted`.
+
+Use `quality: 'low' | 'medium' | 'high' | 'hd' | 'full-hd'` for named recorder bitrate targets. Explicit `videoBitsPerSecond`, `audioBitsPerSecond`, or `bitsPerSecond` options override preset bitrates.
+
+Upload a recording with:
+
+```tsx
+const recording = recorder.file ?? recorder.blob;
+
+if (recording) {
+  const body = createUploadFormData(recording, {
+    fieldName: 'video',
+    fileName: 'camera-recording.webm',
+  });
+
+  await fetch('/api/videos', { method: 'POST', body });
+}
+```
+
+For audio-only recording, pass an audio-only stream from `navigator.mediaDevices.getUserMedia({ audio: true, video: false })` to `useMediaRecorder()`.
+
+## QR And Barcode Scanner Screens
+
+Use `useCameraPermissions()` before rendering a dedicated scanner package, or pair `useWebcam()` with the browser `BarcodeDetector` API when supported. Keep decoder packages optional unless the whole app needs scanning. Prefer `facingMode: { ideal: 'environment' }` for mobile QR and barcode scanner screens.
 
 ## Advanced Track Constraints
 
@@ -332,6 +371,7 @@ Do not assume permission is granted before calling `start()`. Do not assume devi
 - React front/back camera guide: https://modeitsch.com/react-webcam-kit/react-front-back-camera/
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
 - React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/
+- React QR barcode scanner guide: https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/
 - Short LLM context: https://modeitsch.com/react-webcam-kit/llms.txt
 - API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
 - AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md

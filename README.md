@@ -25,6 +25,8 @@ React camera capture, MediaRecorder, avatar upload, or mobile camera switching f
 - `useObjectUrl()` hook for safe Blob previews
 - `downloadBlob()` helper for recording and screenshot downloads
 - `formatDuration()` helper for recorder timers
+- `blobToFile()` and `createUploadFormData()` helpers for upload-ready camera files
+- Recorder quality presets for low, medium, high, HD, and full-HD capture
 - Recorder `cancel()`, `fileName`, `fileType`, and File output for retry/save flows
 - Recorder and playback MIME support helpers
 - Data URL, Blob, canvas, and ImageData capture utilities
@@ -115,21 +117,26 @@ if (blob) {
 
 ```tsx
 import {
+  createUploadFormData,
   downloadBlob,
   formatDuration,
+  getRecordingPresetConstraints,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
 } from 'react-webcam-kit';
 
 export function CameraRecorder() {
-  const camera = useWebcam({ audio: true });
+  const camera = useWebcam({
+    audio: true,
+    videoConstraints: getRecordingPresetConstraints('hd'),
+  });
   const recorder = useMediaRecorder({
     fileName: 'camera-recording',
     fileType: 'webm',
     maxDuration: 30_000,
+    quality: 'hd',
     stream: camera.stream,
-    videoBitsPerSecond: 1_500_000,
   });
   const playbackUrl = useObjectUrl(recorder.blob);
 
@@ -163,6 +170,9 @@ export function CameraRecorder() {
 Use `videoBitsPerSecond`, `audioBitsPerSecond`, `bitsPerSecond`, `mimeType`, and `timeslice` to tune
 output size and browser behavior.
 
+Use `quality: 'low' | 'medium' | 'high' | 'hd' | 'full-hd'` for a preset bitrate target, and pair it
+with `getRecordingPresetConstraints()` when you want matching camera constraints.
+
 Use `maxDuration`, `duration`, `recordingTimeLimitReached`, and `onMaxDuration` for recording time
 limits and timer UI.
 
@@ -170,6 +180,45 @@ Use `cancel()` when the user wants to discard a recording and retry without crea
 
 Use `muteAudio()` and `unmuteAudio()` to toggle microphone tracks during recording without changing
 the preview element.
+
+## Upload A Screenshot Or Recording
+
+```tsx
+import { createUploadFormData } from 'react-webcam-kit';
+
+const form = createUploadFormData(recorder.file ?? recorder.blob!, {
+  fieldName: 'video',
+  fileName: 'intro.webm',
+  fields: {
+    userId,
+  },
+});
+
+await fetch('/api/upload', {
+  method: 'POST',
+  body: form,
+});
+```
+
+Use the same helper with screenshot Blobs from `getScreenshotBlob()`.
+
+## Audio-Only Recording
+
+`useMediaRecorder()` records any browser `MediaStream`, so it can record microphone-only streams too.
+
+```tsx
+const audioStream = await navigator.mediaDevices.getUserMedia({
+  audio: true,
+  video: false,
+});
+
+const recorder = useMediaRecorder({
+  fileName: 'voice-note',
+  fileType: 'webm',
+  quality: 'medium',
+  stream: audioStream,
+});
+```
 
 ## Build A Custom UI With `useWebcam`
 
@@ -373,10 +422,17 @@ const recorder = useMediaRecorder({
   stream: camera.stream,
   mimeType: 'video/webm',
   maxDuration: 30_000,
+  quality: 'hd',
   videoBitsPerSecond: 1_500_000,
   timeslice: 1000,
 });
 ```
+
+### Recording quality helpers
+
+`RECORDING_QUALITY_PRESETS` exposes the built-in bitrate and camera-size targets.
+`getRecordingPresetConstraints('hd')` returns matching ideal video constraints for `useWebcam()` or
+`<Webcam />`.
 
 ### `getSupportedMimeType()`
 
@@ -401,6 +457,11 @@ temporary stream, and resolves to `true` when permission was granted.
 
 `formatDuration(duration)` formats milliseconds as `m:ss` for recorder timer UI.
 
+### `blobToFile()` and `createUploadFormData()`
+
+Use `blobToFile(blob, fileName)` to turn a screenshot or recording Blob into a named File. Use
+`createUploadFormData(blobOrFile, options)` to build a `FormData` payload for upload endpoints.
+
 ### `captureFrame()`
 
 `captureFrame(video, options)` captures from a ready `HTMLVideoElement` and can return a Data URL,
@@ -413,9 +474,11 @@ Blob, canvas, or ImageData.
 - [Full LLM Context](./llms-full.txt)
 - [React Webcam Capture](https://modeitsch.com/react-webcam-kit/react-webcam-capture/)
 - [React Camera Recording](https://modeitsch.com/react-webcam-kit/react-camera-recording/)
+- [React QR Barcode Scanner](https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/)
 - [React Front/Back Camera](https://modeitsch.com/react-webcam-kit/react-front-back-camera/)
 - [React Avatar Capture](https://modeitsch.com/react-webcam-kit/react-avatar-capture/)
 - [React getUserMedia Hooks](https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/)
+- [React QR Barcode Scanner Guide](./docs/REACT-QR-BARCODE-SCANNER.md)
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)

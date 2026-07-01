@@ -1,13 +1,18 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getSupportedMimeType, useMediaRecorder } from './useMediaRecorder';
+import {
+  getRecordingPresetConstraints,
+  getSupportedMimeType,
+  useMediaRecorder,
+} from './useMediaRecorder';
 
 class MockMediaRecorder extends EventTarget {
   static isTypeSupported = vi.fn((mimeType: string) => mimeType === 'video/webm');
   static stopDispatch: 'sync' | 'manual' = 'sync';
 
   mimeType: string;
+  options: MediaRecorderOptions;
   state: RecordingState = 'inactive';
   stream: MediaStream;
   start = vi.fn((timeslice?: number) => {
@@ -36,6 +41,7 @@ class MockMediaRecorder extends EventTarget {
     super();
     this.stream = stream;
     this.mimeType = options.mimeType ?? '';
+    this.options = options;
   }
 
   emitChunk(blob: Blob) {
@@ -122,6 +128,64 @@ describe('useMediaRecorder', () => {
     expect(result.current.status).toBe('stopped');
     expect(result.current.blob).toBeInstanceOf(Blob);
     expect(onStop).toHaveBeenCalledWith(result.current.blob, result.current.chunks);
+  });
+
+  it('applies recording quality presets to recorder options', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        quality: 'hd',
+        stream: createStream(),
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+    });
+
+    expect(recorder?.options).toMatchObject({
+      audioBitsPerSecond: 128_000,
+      videoBitsPerSecond: 2_500_000,
+    });
+  });
+
+  it('lets explicit bitrate options override quality presets', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        audioBitsPerSecond: 80_000,
+        quality: 'hd',
+        stream: createStream(),
+        videoBitsPerSecond: 900_000,
+      }),
+    );
+
+    let recorder: MockMediaRecorder | undefined;
+
+    act(() => {
+      recorder = result.current.start() as unknown as MockMediaRecorder;
+    });
+
+    expect(recorder?.options).toMatchObject({
+      audioBitsPerSecond: 80_000,
+      videoBitsPerSecond: 900_000,
+    });
+  });
+
+  it('returns matching video constraints for recording quality presets', () => {
+    expect(getRecordingPresetConstraints('hd')).toEqual({
+      frameRate: { ideal: 30 },
+      height: { ideal: 720 },
+      width: { ideal: 1280 },
+    });
   });
 
   it('tracks recording duration while recording and pauses duration updates when paused', () => {

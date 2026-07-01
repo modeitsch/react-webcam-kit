@@ -48,6 +48,8 @@ export function CameraWithFallback() {
 ## Capture And Upload A Blob
 
 ```tsx
+import { createUploadFormData } from 'react-webcam-kit';
+
 const blob = await webcamRef.current?.getScreenshotBlob({
   format: 'image/jpeg',
   quality: 0.86,
@@ -55,8 +57,11 @@ const blob = await webcamRef.current?.getScreenshotBlob({
 });
 
 if (blob) {
-  const formData = new FormData();
-  formData.append('image', blob, 'capture.jpg');
+  const formData = createUploadFormData(blob, {
+    fieldName: 'image',
+    fileName: 'capture.jpg',
+  });
+
   await fetch('/api/upload', { method: 'POST', body: formData });
 }
 ```
@@ -111,12 +116,14 @@ Use recorder bitrate options instead of recording at the browser default bitrate
 ```tsx
 const recorder = useMediaRecorder({
   stream: camera.stream,
+  quality: 'high',
   videoBitsPerSecond: 900_000,
   audioBitsPerSecond: 64_000,
 });
 ```
 
-For very small uploads, combine lower recorder bitrate with lower camera constraints:
+Explicit bitrate options override the selected preset. For very small uploads, combine lower
+recorder bitrate with lower camera constraints:
 
 ```tsx
 const camera = useWebcam({
@@ -128,6 +135,159 @@ const camera = useWebcam({
   },
 });
 ```
+
+## Use A Recording Quality Preset
+
+Use one named preset for camera constraints and recorder bitrate targets.
+
+```tsx
+import { getRecordingPresetConstraints, useMediaRecorder, useWebcam } from 'react-webcam-kit';
+
+const camera = useWebcam({
+  audio: true,
+  videoConstraints: getRecordingPresetConstraints('hd'),
+});
+
+const recorder = useMediaRecorder({
+  quality: 'hd',
+  stream: camera.stream,
+});
+```
+
+Available presets are `low`, `medium`, `high`, `hd`, and `full-hd`.
+
+## Upload A Recording
+
+```tsx
+import { createUploadFormData, useMediaRecorder } from 'react-webcam-kit';
+
+const recorder = useMediaRecorder({
+  fileName: 'intro',
+  fileType: 'webm',
+  stream: camera.stream,
+});
+
+async function uploadRecording() {
+  const recording = recorder.file ?? recorder.blob;
+
+  if (!recording) return;
+
+  const formData = createUploadFormData(recording, {
+    fieldName: 'video',
+    fileName: 'intro.webm',
+    fields: {
+      source: 'camera',
+    },
+  });
+
+  await fetch('/api/videos', {
+    method: 'POST',
+    body: formData,
+  });
+}
+```
+
+## Record Audio Only
+
+`useMediaRecorder()` works with any `MediaStream`, including microphone-only streams.
+
+```tsx
+import { useEffect, useState } from 'react';
+import { useMediaRecorder } from 'react-webcam-kit';
+
+export function VoiceNoteRecorder() {
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const recorder = useMediaRecorder({
+    fileName: 'voice-note',
+    fileType: 'webm',
+    quality: 'medium',
+    stream,
+  });
+
+  useEffect(() => {
+    let active = true;
+    let currentStream: MediaStream | null = null;
+
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((nextStream) => {
+      currentStream = nextStream;
+
+      if (active) {
+        setStream(nextStream);
+        return;
+      }
+
+      nextStream.getTracks().forEach((track) => track.stop());
+    });
+
+    return () => {
+      active = false;
+      currentStream?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  return (
+    <>
+      <button type="button" onClick={() => recorder.start()}>
+        Record voice note
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+    </>
+  );
+}
+```
+
+## Add QR Or Barcode Scanning
+
+Keep QR/barcode scanning as an app-level feature so the webcam package stays small. Use
+`useCameraPermissions()` for permission preflight, or pair `useWebcam()` with the browser
+`BarcodeDetector` API when supported.
+
+```tsx
+import { useEffect } from 'react';
+import { useWebcam } from 'react-webcam-kit';
+
+export function BarcodeScanner() {
+  const camera = useWebcam({
+    audio: false,
+    videoConstraints: { facingMode: { ideal: 'environment' } },
+  });
+
+  useEffect(() => {
+    if (!('BarcodeDetector' in window) || camera.status !== 'ready') return;
+
+    const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128'] });
+    let stopped = false;
+
+    async function scan() {
+      const video = camera.videoRef.current;
+
+      if (!video || stopped) return;
+
+      const codes = await detector.detect(video);
+      const firstCode = codes[0];
+
+      if (firstCode) {
+        console.log(firstCode.rawValue);
+      }
+
+      requestAnimationFrame(scan);
+    }
+
+    void scan();
+
+    return () => {
+      stopped = true;
+    };
+  }, [camera.status, camera.videoRef]);
+
+  return <video ref={camera.videoRef} autoPlay playsInline muted />;
+}
+```
+
+For broader barcode support, render a dedicated scanner library after permission is granted. Good
+integration points are permission prompts, device selection, and fallback UI.
 
 ## Choose A Recording MIME Type
 

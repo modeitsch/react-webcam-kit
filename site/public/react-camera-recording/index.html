@@ -6,7 +6,7 @@
     <title>React Camera Recording - MediaRecorder hook for React</title>
     <meta
       name="description"
-      content="Record webcam video in React with useMediaRecorder, Blob/File output, MIME helpers, pause/resume, cancel, and safe preview URLs."
+      content="Record webcam video in React with useMediaRecorder, quality presets, Blob/File output, upload helpers, MIME helpers, pause/resume, cancel, and safe preview URLs."
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-camera-recording/" />
@@ -18,8 +18,9 @@
       <p class="eyebrow">React camera recording</p>
       <h1>Record webcam video in React.</h1>
       <p class="lead">
-        Use `useWebcam()` for the camera stream and `useMediaRecorder()` for recording controls,
-        chunks, final Blob/File output, and browser-aware MIME configuration.
+        Use `useWebcam()` for the camera stream and `useMediaRecorder()` for quality presets,
+        recording controls, chunks, final Blob/File output, upload helpers, and browser-aware MIME
+        configuration.
       </p>
       <div class="actions">
         <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
@@ -31,6 +32,7 @@
       <h2>Record and download a video</h2>
       <pre><code>import {
   downloadBlob,
+  getRecordingPresetConstraints,
   getSupportedMimeType,
   useMediaRecorder,
   useObjectUrl,
@@ -44,12 +46,16 @@ const mimeType = getSupportedMimeType([
 ]);
 
 export function Recorder() {
-  const camera = useWebcam({ audio: true });
+  const camera = useWebcam({
+    audio: true,
+    videoConstraints: getRecordingPresetConstraints('hd'),
+  });
   const recorder = useMediaRecorder({
     stream: camera.stream,
     mimeType: mimeType ?? undefined,
     fileName: 'camera-recording',
     fileType: 'webm',
+    quality: 'hd',
   });
   const playbackUrl = useObjectUrl(recorder.blob);
 
@@ -69,9 +75,11 @@ export function Recorder() {
       <h2>Recording features</h2>
       <ul>
         <li>Start, stop, pause, resume, reset, and cancel recording sessions.</li>
+        <li>Use low, medium, high, HD, and full-HD recording quality presets.</li>
         <li>Show recording duration with `duration` and `formatDuration()`.</li>
         <li>Enforce recording limits with `maxDuration` and `recordingTimeLimitReached`.</li>
         <li>Expose chunks, final Blob, optional File output, status, and errors.</li>
+        <li>Create upload-ready FormData with `createUploadFormData()`.</li>
         <li>Mute and unmute audio tracks without changing preview video mute state.</li>
         <li>Choose supported MediaRecorder MIME types before recording.</li>
       </ul>

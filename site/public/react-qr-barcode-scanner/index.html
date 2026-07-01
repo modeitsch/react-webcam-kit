@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React QR Barcode Scanner - camera integration guide</title>
+    <meta
+      name="description"
+      content="Build React QR scanner and barcode scanner screens with camera permissions, back camera constraints, browser BarcodeDetector integration, and react-webcam-kit."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React QR barcode scanner</p>
+      <h1>Build scanner screens with React camera hooks.</h1>
+      <p class="lead">
+        Use react-webcam-kit for permission prompts, mobile back camera constraints, preview
+        lifecycle, and clean stream teardown around QR code and barcode scanning workflows.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Browser BarcodeDetector example</h2>
+      <pre><code>import { useEffect, useState } from 'react';
+import { useWebcam } from 'react-webcam-kit';
+
+export function BarcodeScanner() {
+  const [value, setValue] = useState(null);
+  const camera = useWebcam({
+    audio: false,
+    videoConstraints: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+    },
+  });
+
+  useEffect(() =&gt; {
+    if (!('BarcodeDetector' in window) || camera.status !== 'ready') return;
+
+    const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128'] });
+    let stopped = false;
+
+    async function scan() {
+      const video = camera.videoRef.current;
+      if (!video || stopped) return;
+
+      const codes = await detector.detect(video);
+      if (codes[0]) setValue(codes[0].rawValue);
+
+      requestAnimationFrame(scan);
+    }
+
+    void scan();
+
+    return () =&gt; {
+      stopped = true;
+    };
+  }, [camera.status, camera.videoRef]);
+
+  return (
+    &lt;&gt;
+      &lt;video ref={camera.videoRef} autoPlay playsInline muted /&gt;
+      &lt;p&gt;{value ?? 'Scan a QR code or barcode'}&lt;/p&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Scanner integration tips</h2>
+      <ul>
+        <li>Use `useCameraPermissions()` before rendering a dedicated scanner package.</li>
+        <li>Prefer `facingMode: { ideal: 'environment' }` for mobile QR and barcode scanning.</li>
+        <li>Feature-detect `BarcodeDetector` before using the browser scanner API.</li>
+        <li>Keep scanner decoder packages optional unless every screen needs scanning.</li>
+        <li>Stop streams when scanner modals close or routes change.</li>
+      </ul>
+
+      <p class="note">
+        QR and barcode decoding support varies by browser. Use react-webcam-kit for camera lifecycle
+        and add a dedicated decoder library when your app needs broader scanner compatibility.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-front-back-camera/">Front/back camera switching</a>
+      </div>
+    </main>
+  </body>
+</html>

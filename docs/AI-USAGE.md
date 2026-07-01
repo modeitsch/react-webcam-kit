@@ -29,9 +29,13 @@ npm install react-webcam-kit
 | Front/back mobile camera switching  | `switchFacingMode()` with `user` or `environment`         |
 | Exact selected device switching     | `switchDevice(deviceId)`                                  |
 | Video recording                     | `useMediaRecorder({ stream })`                            |
+| Recording quality presets           | `quality` and `getRecordingPresetConstraints()`           |
 | Recorded Blob preview               | `useObjectUrl(blob)`                                      |
 | Download screenshots or recordings  | `downloadBlob(blobOrFile)`                                |
+| Upload screenshots or recordings    | `createUploadFormData(blobOrFile, options)`               |
 | Recorder timer labels               | `formatDuration(duration)`                                |
+| Audio-only recording                | `useMediaRecorder()` with an audio-only `MediaStream`     |
+| QR or barcode scanner screen        | `useCameraPermissions()` or `useWebcam()` plus a scanner  |
 | Existing video element frame grab   | `captureFrame(video, options)`                            |
 | Browser-safe recording MIME choice  | `getSupportedMimeType(candidates)`                        |
 | Permission/browser/device UI errors | `onError`, `error`, and `normalizeMediaError()`           |
@@ -41,8 +45,10 @@ npm install react-webcam-kit
 ```tsx
 import {
   Webcam,
+  createUploadFormData,
   downloadBlob,
   formatDuration,
+  getRecordingPresetConstraints,
   getSupportedMimeType,
   useCameraPermissions,
   useDevices,
@@ -98,7 +104,7 @@ export function CameraPermissionPrompt() {
 
 ```tsx
 import { useRef } from 'react';
-import { Webcam, type WebcamHandle } from 'react-webcam-kit';
+import { Webcam, createUploadFormData, type WebcamHandle } from 'react-webcam-kit';
 
 export function AvatarCapture() {
   const webcamRef = useRef<WebcamHandle>(null);
@@ -113,8 +119,10 @@ export function AvatarCapture() {
 
     if (!blob) return;
 
-    const form = new FormData();
-    form.set('avatar', new File([blob], 'avatar.jpg', { type: blob.type }));
+    const form = createUploadFormData(blob, {
+      fieldName: 'avatar',
+      fileName: 'avatar.jpg',
+    });
 
     await fetch('/api/avatar', {
       method: 'POST',
@@ -216,6 +224,7 @@ after the user chooses a device from `useDevices()`.
 import {
   downloadBlob,
   formatDuration,
+  getRecordingPresetConstraints,
   getSupportedMimeType,
   useMediaRecorder,
   useObjectUrl,
@@ -229,10 +238,14 @@ const mimeType = getSupportedMimeType([
 ]);
 
 export function CameraRecorder() {
-  const camera = useWebcam({ audio: true });
+  const camera = useWebcam({
+    audio: true,
+    videoConstraints: getRecordingPresetConstraints('hd'),
+  });
   const recorder = useMediaRecorder({
     stream: camera.stream,
     mimeType: mimeType ?? undefined,
+    quality: 'hd',
     maxDuration: 30_000,
     fileName: 'recording',
     fileType: 'webm',
@@ -267,6 +280,53 @@ export function CameraRecorder() {
 Use `recorder.cancel()` to discard an in-progress recording. Use `muteAudio()`, `unmuteAudio()`, or
 `setAudioMuted()` to change microphone tracks without changing the preview element's `muted` prop.
 Use `maxDuration` and `recordingTimeLimitReached` for recording time limits.
+
+Use `quality: 'low' | 'medium' | 'high' | 'hd' | 'full-hd'` for named recorder bitrate targets.
+Use `getRecordingPresetConstraints(quality)` for matching ideal camera constraints.
+
+## Upload Recording
+
+```tsx
+import { createUploadFormData } from 'react-webcam-kit';
+
+const recording = recorder.file ?? recorder.blob;
+
+if (recording) {
+  const body = createUploadFormData(recording, {
+    fieldName: 'video',
+    fileName: 'recording.webm',
+    fields: { source: 'camera' },
+  });
+
+  await fetch('/api/videos', {
+    method: 'POST',
+    body,
+  });
+}
+```
+
+## Audio-Only Recording
+
+```tsx
+const audioStream = await navigator.mediaDevices.getUserMedia({
+  audio: true,
+  video: false,
+});
+
+const recorder = useMediaRecorder({
+  fileName: 'voice-note',
+  fileType: 'webm',
+  quality: 'medium',
+  stream: audioStream,
+});
+```
+
+## QR And Barcode Scanner Screens
+
+For QR and barcode scanners, keep decoding as an app-level integration. Use `useCameraPermissions()`
+before rendering a dedicated scanner package, or combine `useWebcam()` with the browser
+`BarcodeDetector` API when the browser supports it. Prefer `facingMode: { ideal: 'environment' }`
+for mobile scanner screens and always feature-detect scanner APIs.
 
 ## Advanced Device Controls
 
@@ -304,5 +364,7 @@ constraints. Unsupported constraints should not be assumed to work across browse
 - Handle permission, unsupported browser, and missing camera states.
 - Use `useObjectUrl()` instead of manual `URL.createObjectURL()` for previews.
 - Use `formatDuration(recorder.duration)` for recorder timer labels.
+- Use `createUploadFormData()` for upload examples instead of hand-rolling repeated FormData code.
+- Keep QR/barcode decoder libraries optional unless the whole app needs scanning.
 - Avoid claiming camera access works on the server.
 - Avoid claiming all browsers support the same recorder MIME types.

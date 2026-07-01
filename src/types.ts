@@ -153,6 +153,16 @@ export interface MediaRecorderError {
   cause?: unknown;
 }
 
+export type RecordingQualityPreset = 'low' | 'medium' | 'high' | 'hd' | 'full-hd';
+
+export interface RecordingQualityPresetConfig {
+  audioBitsPerSecond: number;
+  frameRate: number;
+  height: number;
+  videoBitsPerSecond: number;
+  width: number;
+}
+
 export interface UseMediaRecorderOptions {
   audioBitsPerSecond?: number;
   bitsPerSecond?: number;
@@ -168,9 +178,16 @@ export interface UseMediaRecorderOptions {
   onResume?: () => void;
   onStart?: (recorder: MediaRecorder) => void;
   onStop?: (blob: Blob, chunks: Blob[]) => void;
+  quality?: RecordingQualityPreset;
   stream?: MediaStream | null;
   timeslice?: number;
   videoBitsPerSecond?: number;
+}
+
+export interface CreateUploadFormDataOptions {
+  fields?: Record<string, string | Blob>;
+  fieldName?: string;
+  fileName?: string;
 }
 
 export interface UseMediaRecorderResult {

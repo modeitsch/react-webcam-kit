@@ -4,18 +4,43 @@
 File.
 
 ```tsx
-import { downloadBlob, useMediaRecorder, useObjectUrl, useWebcam } from 'react-webcam-kit';
+import {
+  createUploadFormData,
+  downloadBlob,
+  getRecordingPresetConstraints,
+  useMediaRecorder,
+  useObjectUrl,
+  useWebcam,
+} from 'react-webcam-kit';
 
 export function VideoRecorder() {
-  const camera = useWebcam({ audio: true });
+  const camera = useWebcam({
+    audio: true,
+    videoConstraints: getRecordingPresetConstraints('hd'),
+  });
   const recorder = useMediaRecorder({
     stream: camera.stream,
     fileName: 'intro-video',
     fileType: 'webm',
-    videoBitsPerSecond: 1_500_000,
-    audioBitsPerSecond: 96_000,
+    quality: 'hd',
   });
   const playbackUrl = useObjectUrl(recorder.blob);
+
+  async function upload() {
+    const recording = recorder.file ?? recorder.blob;
+
+    if (!recording) return;
+
+    const formData = createUploadFormData(recording, {
+      fieldName: 'video',
+      fileName: 'intro-video.webm',
+    });
+
+    await fetch('/api/videos', {
+      method: 'POST',
+      body: formData,
+    });
+  }
 
   return (
     <>
@@ -40,10 +65,17 @@ export function VideoRecorder() {
           Download
         </button>
       ) : null}
+      {recorder.blob ? (
+        <button type="button" onClick={() => void upload()}>
+          Upload
+        </button>
+      ) : null}
       {playbackUrl ? <video src={playbackUrl} controls /> : null}
     </>
   );
 }
 ```
 
-Use `getSupportedMimeType()` or `getSupportedVideoMimeTypes()` to choose a format before recording.
+Use `quality` for named bitrate targets. Use `getRecordingPresetConstraints()` to match the camera
+request with the recorder target. Use `getSupportedMimeType()` or `getSupportedVideoMimeTypes()` to
+choose a format before recording.
