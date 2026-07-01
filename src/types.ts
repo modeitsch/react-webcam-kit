@@ -102,6 +102,23 @@ export interface UseDisplayMediaResult {
   stream: MediaStream | null;
 }
 
+export type UseAudioRecorderOptions = Omit<UseMediaRecorderOptions, 'stream'> & {
+  audioConstraints?: MediaStreamConstraints['audio'];
+  onMediaError?: (error: CameraError) => void;
+  onMediaStart?: (stream: MediaStream) => void;
+  onMediaStop?: () => void;
+};
+
+export type UseAudioRecorderResult = Omit<UseMediaRecorderResult, 'start' | 'stop'> & {
+  isMediaSupported: boolean;
+  mediaError: CameraError | null;
+  mediaStatus: CameraStatus;
+  start: () => Promise<MediaRecorder | null>;
+  stop: () => void;
+  stopStream: () => void;
+  stream: MediaStream | null;
+};
+
 export interface UseWebcamOptions {
   audio?: boolean;
   audioConstraints?: MediaStreamConstraints['audio'];

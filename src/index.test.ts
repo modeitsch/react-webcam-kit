@@ -4,6 +4,7 @@ import type {
   CameraStatus,
   RecordingStatus,
   ScreenshotOptions,
+  UseAudioRecorderOptions,
   UseDisplayMediaOptions,
 } from './index';
 
@@ -19,10 +20,18 @@ describe('public types', () => {
       audio: true,
       video: true,
     };
+    const audioOptions: UseAudioRecorderOptions = {
+      audioConstraints: {
+        echoCancellation: true,
+      },
+    };
 
     expect(status).toBe('idle');
     expect(recordingStatus).toBe('recording');
     expect(options.format).toBe('image/jpeg');
     expect(displayOptions.video).toBe(true);
+    expect(audioOptions.audioConstraints).toEqual({
+      echoCancellation: true,
+    });
   });
 });

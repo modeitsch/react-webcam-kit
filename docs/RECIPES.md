@@ -230,41 +230,22 @@ async function uploadRecording() {
 
 ## Record Audio Only
 
-`useMediaRecorder()` works with any `MediaStream`, including microphone-only streams.
+Use `useAudioRecorder()` when the hook should request the microphone for you.
 
 ```tsx
-import { useEffect, useState } from 'react';
-import { useMediaRecorder } from 'react-webcam-kit';
+import { useAudioRecorder, useObjectUrl } from 'react-webcam-kit';
 
 export function VoiceNoteRecorder() {
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const recorder = useMediaRecorder({
+  const recorder = useAudioRecorder({
+    audioConstraints: {
+      echoCancellation: true,
+      noiseSuppression: true,
+    },
     fileName: 'voice-note',
     fileType: 'webm',
     quality: 'medium',
-    stream,
   });
-
-  useEffect(() => {
-    let active = true;
-    let currentStream: MediaStream | null = null;
-
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((nextStream) => {
-      currentStream = nextStream;
-
-      if (active) {
-        setStream(nextStream);
-        return;
-      }
-
-      nextStream.getTracks().forEach((track) => track.stop());
-    });
-
-    return () => {
-      active = false;
-      currentStream?.getTracks().forEach((track) => track.stop());
-    };
-  }, []);
+  const playbackUrl = useObjectUrl(recorder.blob);
 
   return (
     <>
@@ -274,10 +255,13 @@ export function VoiceNoteRecorder() {
       <button type="button" onClick={recorder.stop}>
         Stop
       </button>
+      {playbackUrl ? <audio src={playbackUrl} controls /> : null}
     </>
   );
 }
 ```
+
+Use `mediaStatus`, `mediaError`, and `isMediaSupported` for microphone-specific UI.
 
 ## Add QR Or Barcode Scanning
 

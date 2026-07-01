@@ -12,6 +12,7 @@ export { blobToFile } from 'react-webcam-kit';
 export { createUploadFormData } from 'react-webcam-kit';
 export { formatDuration } from 'react-webcam-kit';
 export { getRecordingPresetConstraints } from 'react-webcam-kit';
+export { useAudioRecorder } from 'react-webcam-kit';
 export { useCameraPermissions } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
@@ -257,6 +258,46 @@ const recorder = useMediaRecorder({
 
 `cancel()` stops the active recorder and discards collected chunks. It does not create a final Blob
 and does not call `onStop`.
+
+## `useAudioRecorder(options)`
+
+Use this hook when you want microphone capture and recording in one API.
+
+```tsx
+const recorder = useAudioRecorder({
+  audioConstraints: {
+    echoCancellation: true,
+    noiseSuppression: true,
+  },
+  fileName: 'voice-note',
+  fileType: 'webm',
+});
+```
+
+`useAudioRecorder()` returns the `useMediaRecorder()` result with a Promise-based `start()` that
+requests an audio-only stream and starts recording. It also returns `mediaStatus`, `mediaError`,
+`isMediaSupported`, `stream`, and `stopStream()`.
+
+### Options
+
+`useAudioRecorder()` accepts every `useMediaRecorder()` option except `stream`, plus:
+
+| Option             | Type                              | Description                                     |
+| ------------------ | --------------------------------- | ----------------------------------------------- |
+| `audioConstraints` | `MediaStreamConstraints['audio']` | Microphone constraints. Defaults to `true`.     |
+| `onMediaStart`     | `(stream) => void`                | Runs after microphone capture starts.           |
+| `onMediaStop`      | `() => void`                      | Runs after microphone tracks are stopped.       |
+| `onMediaError`     | `(error) => void`                 | Runs with normalized microphone capture errors. |
+
+### Result Additions
+
+| Field              | Type                  | Description                                    |
+| ------------------ | --------------------- | ---------------------------------------------- |
+| `mediaStatus`      | `CameraStatus`        | Microphone capture lifecycle state.            |
+| `mediaError`       | `CameraError \| null` | Last normalized microphone capture error.      |
+| `isMediaSupported` | `boolean`             | Whether `getUserMedia` is available.           |
+| `stream`           | `MediaStream \| null` | Active microphone stream.                      |
+| `stopStream`       | function              | Stop microphone tracks without recorder state. |
 
 ## `useDisplayMedia(options)`
 

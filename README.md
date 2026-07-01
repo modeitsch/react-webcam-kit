@@ -21,6 +21,7 @@ React camera capture, MediaRecorder, avatar upload, or mobile camera switching f
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
 - `useCameraPermissions()` hook for preflight permission UI
 - `useDevices()` hook for camera and microphone enumeration, maps, and counts
+- `useAudioRecorder()` hook for microphone-only recording
 - `useDisplayMedia()` hook for screen, window, and tab capture
 - `useMediaRecorder()` hook for typed video recording, duration, max-duration, and Blob output
 - `useObjectUrl()` hook for safe Blob previews
@@ -122,6 +123,7 @@ import {
   downloadBlob,
   formatDuration,
   getRecordingPresetConstraints,
+  useAudioRecorder,
   useDisplayMedia,
   useMediaRecorder,
   useObjectUrl,
@@ -244,21 +246,35 @@ Use the same helper with screenshot Blobs from `getScreenshotBlob()`.
 
 ## Audio-Only Recording
 
-`useMediaRecorder()` records any browser `MediaStream`, so it can record microphone-only streams too.
+Use `useAudioRecorder()` when you want the hook to request the microphone and start recording.
 
 ```tsx
-const audioStream = await navigator.mediaDevices.getUserMedia({
-  audio: true,
-  video: false,
-});
+import { useAudioRecorder, useObjectUrl } from 'react-webcam-kit';
 
-const recorder = useMediaRecorder({
-  fileName: 'voice-note',
-  fileType: 'webm',
-  quality: 'medium',
-  stream: audioStream,
-});
+export function VoiceNoteRecorder() {
+  const recorder = useAudioRecorder({
+    fileName: 'voice-note',
+    fileType: 'webm',
+    quality: 'medium',
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void recorder.start()}>
+        Record voice note
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+      {playbackUrl ? <audio src={playbackUrl} controls /> : null}
+    </>
+  );
+}
 ```
+
+`useAudioRecorder()` returns the recorder state plus `mediaStatus`, `mediaError`, `stream`, and
+`stopStream()` for microphone lifecycle control.
 
 ## Build A Custom UI With `useWebcam`
 
@@ -493,6 +509,11 @@ state, and normalized errors.
 `refresh()`, and `requestPermission()`. `requestPermission()` probes the camera permission, stops the
 temporary stream, and resolves to `true` when permission was granted.
 
+### `useAudioRecorder()`
+
+`useAudioRecorder(options)` requests a microphone stream, starts `useMediaRecorder()` with that
+stream, and stops microphone tracks when recording stops.
+
 ### `useDisplayMedia()`
 
 `useDisplayMedia(options)` requests browser screen, window, or tab capture with
@@ -520,6 +541,7 @@ Blob, canvas, or ImageData.
 - [Full LLM Context](./llms-full.txt)
 - [React Webcam Capture](https://modeitsch.com/react-webcam-kit/react-webcam-capture/)
 - [React Camera Recording](https://modeitsch.com/react-webcam-kit/react-camera-recording/)
+- [React Audio Recorder](https://modeitsch.com/react-webcam-kit/react-audio-recorder/)
 - [React Screen Recorder](https://modeitsch.com/react-webcam-kit/react-screen-recorder/)
 - [React QR Barcode Scanner](https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/)
 - [React Front/Back Camera](https://modeitsch.com/react-webcam-kit/react-front-back-camera/)
@@ -527,6 +549,7 @@ Blob, canvas, or ImageData.
 - [React getUserMedia Hooks](https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/)
 - [React QR Barcode Scanner Guide](./docs/REACT-QR-BARCODE-SCANNER.md)
 - [React Screen Recorder Guide](./docs/REACT-SCREEN-RECORDER.md)
+- [React Audio Recorder Guide](./docs/REACT-AUDIO-RECORDER.md)
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)

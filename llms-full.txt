@@ -1,6 +1,6 @@
 # react-webcam-kit LLM Context
 
-react-webcam-kit is a TypeScript React package for browser webcam, camera capture, screen capture, camera recording, screen recording, upload-ready files, device selection, and media cleanup flows.
+react-webcam-kit is a TypeScript React package for browser webcam, camera capture, screen capture, camera recording, screen recording, audio recording, upload-ready files, device selection, and media cleanup flows.
 
 Use this file as compact package context for coding assistants, documentation agents, and search tools. Prefer the linked repository docs for the latest full API reference.
 
@@ -31,6 +31,7 @@ import {
   getRecordingPresetConstraints,
   getSupportedMimeType,
   normalizeMediaError,
+  useAudioRecorder,
   useCameraPermissions,
   useDevices,
   useDisplayMedia,
@@ -48,6 +49,7 @@ import {
 - Use `useWebcam()` when the app needs a custom camera UI, custom controls, status rendering, or direct stream access.
 - Use `useCameraPermissions()` when the app needs a permission prompt before rendering a full camera workflow.
 - Use `useDevices()` when the app needs a camera/microphone picker.
+- Use `useAudioRecorder()` when the app needs microphone-only recording.
 - Use `useDisplayMedia()` when the app needs screen, window, or tab capture.
 - Use `useMediaRecorder()` when the app needs to record an active `MediaStream`, show duration, or enforce a max duration.
 - Use `getRecordingPresetConstraints()` with recorder `quality` when the app needs named low, medium, high, HD, or full-HD recording targets.
@@ -312,6 +314,34 @@ if (recording) {
 
 For audio-only recording, pass an audio-only stream from `navigator.mediaDevices.getUserMedia({ audio: true, video: false })` to `useMediaRecorder()`.
 
+Prefer `useAudioRecorder()` when the package should request the microphone and own the stream
+lifecycle:
+
+```tsx
+import { useAudioRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function VoiceNoteRecorder() {
+  const recorder = useAudioRecorder({
+    fileName: 'voice-note',
+    fileType: 'webm',
+    quality: 'medium',
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void recorder.start()}>
+        Record voice note
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+      {playbackUrl ? <audio src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
 ## Screen Recording
 
 ```tsx
@@ -406,6 +436,7 @@ Do not assume permission is granted before calling `start()`. Do not assume devi
 - Website: https://modeitsch.com/react-webcam-kit/
 - React webcam capture guide: https://modeitsch.com/react-webcam-kit/react-webcam-capture/
 - React camera recording guide: https://modeitsch.com/react-webcam-kit/react-camera-recording/
+- React audio recorder guide: https://modeitsch.com/react-webcam-kit/react-audio-recorder/
 - React screen recorder guide: https://modeitsch.com/react-webcam-kit/react-screen-recorder/
 - React front/back camera guide: https://modeitsch.com/react-webcam-kit/react-front-back-camera/
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Audio Recorder - microphone recording hook</title>
+    <meta
+      name="description"
+      content="Build a React audio recorder with useAudioRecorder, microphone permission state, MediaRecorder output, Blob/File downloads, previews, and uploads."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-audio-recorder/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React audio recorder</p>
+      <h1>Record microphone audio in React.</h1>
+      <p class="lead">
+        Use `useAudioRecorder()` for microphone permission, audio-only MediaRecorder state,
+        Blob/File output, playback previews, and uploads.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Audio recorder example</h2>
+      <pre><code>import { useAudioRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function VoiceNoteRecorder() {
+  const recorder = useAudioRecorder({
+    fileName: 'voice-note',
+    fileType: 'webm',
+    quality: 'medium',
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    &lt;&gt;
+      &lt;button onClick={() =&gt; recorder.start()}&gt;Record&lt;/button&gt;
+      &lt;button onClick={recorder.stop}&gt;Stop&lt;/button&gt;
+      {playbackUrl ? &lt;audio src={playbackUrl} controls /&gt; : null}
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Audio recording features</h2>
+      <ul>
+        <li>Request microphone access and start recording with one hook.</li>
+        <li>Use `mediaStatus`, `mediaError`, and `isMediaSupported` for microphone UI.</li>
+        <li>Expose Blob, File, chunks, duration, pause, resume, cancel, and errors.</li>
+        <li>Preview recorded audio with `useObjectUrl()`.</li>
+        <li>Upload recordings with `createUploadFormData()`.</li>
+      </ul>
+
+      <p class="note">
+        MediaRecorder audio MIME support varies by browser. The hook chooses supported audio
+        recorder MIME candidates by default.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-screen-recorder/">React screen recorder</a>
+        <a href="../react-getusermedia-hooks/">React getUserMedia hooks</a>
+      </div>
+    </main>
+  </body>
+</html>

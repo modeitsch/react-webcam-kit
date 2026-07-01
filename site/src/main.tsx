@@ -48,6 +48,7 @@ const apiRows = [
   ],
   ['useWebcam()', 'Composable stream lifecycle hook for custom camera interfaces.'],
   ['useDevices()', 'Enumerates media devices with grouped arrays, maps, counts, and refresh.'],
+  ['useAudioRecorder()', 'Requests microphone access and records audio-only streams.'],
   [
     'useMediaRecorder()',
     'Records a MediaStream with duration, max-duration, MIME, bitrate, Blob, and File controls.',
@@ -71,6 +72,7 @@ const capabilityItems = [
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
   'Record video streams with bitrate controls, cancel, Blob, and File output',
   'Capture browser tabs, windows, or screens and record them with MediaRecorder',
+  'Record microphone-only voice notes with a dedicated audio recorder hook',
   'Use low, medium, high, HD, and full-HD recording quality presets',
   'Build upload-ready FormData from screenshot and recording Blobs',
   'Record audio-only streams with the same MediaRecorder hook',
@@ -100,6 +102,7 @@ const qualityItems = [
 const guideItems = [
   ['React webcam capture', './react-webcam-capture/'],
   ['React camera recording', './react-camera-recording/'],
+  ['React audio recorder', './react-audio-recorder/'],
   ['React screen recorder', './react-screen-recorder/'],
   ['React QR barcode scanner', './react-qr-barcode-scanner/'],
   ['Front and back camera switching', './react-front-back-camera/'],
@@ -299,11 +302,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.6.0</dt>
+              <dt>0.7.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>24</dt>
+              <dt>25</dt>
               <dd>Public exports</dd>
             </div>
             <div>

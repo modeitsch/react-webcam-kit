@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+
+- Added `useAudioRecorder()` for microphone-only recording with built-in stream lifecycle.
+- Added typed audio recorder options and result types.
+- Added docs and a crawlable React audio recorder guide.
+
 ## 0.6.0
 
 - Added `useDisplayMedia()` for browser screen, window, and tab capture.

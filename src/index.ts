@@ -1,6 +1,7 @@
 export { captureFrame } from './capture/captureFrame';
 export { Webcam, type WebcamHandle, type WebcamProps } from './components/Webcam';
 export { normalizeMediaError } from './errors/normalizeMediaError';
+export { useAudioRecorder } from './hooks/useAudioRecorder';
 export { useCameraPermissions } from './hooks/useCameraPermissions';
 export { useDevices } from './hooks/useDevices';
 export { useDisplayMedia } from './hooks/useDisplayMedia';
@@ -38,6 +39,8 @@ export type {
   RecordingStatus,
   ScreenshotFormat,
   ScreenshotOptions,
+  UseAudioRecorderOptions,
+  UseAudioRecorderResult,
   UseCameraPermissionsOptions,
   UseCameraPermissionsResult,
   UseDevicesResult,

@@ -35,7 +35,7 @@ npm install react-webcam-kit
 | Download screenshots or recordings  | `downloadBlob(blobOrFile)`                                |
 | Upload screenshots or recordings    | `createUploadFormData(blobOrFile, options)`               |
 | Recorder timer labels               | `formatDuration(duration)`                                |
-| Audio-only recording                | `useMediaRecorder()` with an audio-only `MediaStream`     |
+| Audio-only recording                | `useAudioRecorder()`                                      |
 | QR or barcode scanner screen        | `useCameraPermissions()` or `useWebcam()` plus a scanner  |
 | Existing video element frame grab   | `captureFrame(video, options)`                            |
 | Browser-safe recording MIME choice  | `getSupportedMimeType(candidates)`                        |
@@ -51,6 +51,7 @@ import {
   formatDuration,
   getRecordingPresetConstraints,
   getSupportedMimeType,
+  useAudioRecorder,
   useCameraPermissions,
   useDevices,
   useDisplayMedia,
@@ -95,6 +96,35 @@ export function ScreenRecorder() {
 
 Start `useDisplayMedia().start()` from a user action. Pass `screen.stream` into
 `useMediaRecorder()` for recording.
+
+## Audio Recording
+
+```tsx
+import { useAudioRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function VoiceNoteRecorder() {
+  const recorder = useAudioRecorder({
+    fileName: 'voice-note',
+    fileType: 'webm',
+    quality: 'medium',
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void recorder.start()}>
+        Record voice note
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop
+      </button>
+      {playbackUrl ? <audio src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+Use `mediaStatus`, `mediaError`, and `isMediaSupported` for microphone-specific UI.
 
 ## Quick Preview
 
@@ -397,6 +427,7 @@ constraints. Unsupported constraints should not be assumed to work across browse
 
 - Recommend `<Webcam />` for simple previews and `useWebcam()` for custom UIs.
 - Recommend `useCameraPermissions()` for permission preflight UI.
+- Recommend `useAudioRecorder()` for microphone-only recorder examples.
 - Recommend `useDisplayMedia()` plus `useMediaRecorder()` for screen recorder examples.
 - Include `playsInline` and `muted` on preview videos.
 - Handle `null` screenshot results.
