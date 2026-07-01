@@ -1,6 +1,6 @@
 # react-webcam-kit LLM Context
 
-react-webcam-kit is a TypeScript React package for browser webcam, camera capture, camera recording, upload-ready files, device selection, and media cleanup flows.
+react-webcam-kit is a TypeScript React package for browser webcam, camera capture, screen capture, camera recording, screen recording, upload-ready files, device selection, and media cleanup flows.
 
 Use this file as compact package context for coding assistants, documentation agents, and search tools. Prefer the linked repository docs for the latest full API reference.
 
@@ -33,6 +33,7 @@ import {
   normalizeMediaError,
   useCameraPermissions,
   useDevices,
+  useDisplayMedia,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
@@ -47,6 +48,7 @@ import {
 - Use `useWebcam()` when the app needs a custom camera UI, custom controls, status rendering, or direct stream access.
 - Use `useCameraPermissions()` when the app needs a permission prompt before rendering a full camera workflow.
 - Use `useDevices()` when the app needs a camera/microphone picker.
+- Use `useDisplayMedia()` when the app needs screen, window, or tab capture.
 - Use `useMediaRecorder()` when the app needs to record an active `MediaStream`, show duration, or enforce a max duration.
 - Use `getRecordingPresetConstraints()` with recorder `quality` when the app needs named low, medium, high, HD, or full-HD recording targets.
 - Use `captureFrame()` when the app already owns a video element and only needs capture helpers.
@@ -310,6 +312,41 @@ if (recording) {
 
 For audio-only recording, pass an audio-only stream from `navigator.mediaDevices.getUserMedia({ audio: true, video: false })` to `useMediaRecorder()`.
 
+## Screen Recording
+
+```tsx
+import { useDisplayMedia, useMediaRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function ScreenRecorder() {
+  const screen = useDisplayMedia({ audio: true, video: true });
+  const recorder = useMediaRecorder({
+    fileName: 'screen-recording',
+    fileType: 'webm',
+    quality: 'hd',
+    stream: screen.stream,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void screen.start()}>
+        Share screen
+      </button>
+      <button type="button" disabled={!screen.stream} onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop recording
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+Start display capture from a user action. `useDisplayMedia()` returns `status`, `stream`, `error`,
+`isSupported`, `start()`, and `stop()`. It also handles the user ending sharing from the browser UI.
+
 ## QR And Barcode Scanner Screens
 
 Use `useCameraPermissions()` before rendering a dedicated scanner package, or pair `useWebcam()` with the browser `BarcodeDetector` API when supported. Keep decoder packages optional unless the whole app needs scanning. Prefer `facingMode: { ideal: 'environment' }` for mobile QR and barcode scanner screens.
@@ -356,6 +393,7 @@ Do not assume permission is granted before calling `start()`. Do not assume devi
 
 - Requires HTTPS or localhost.
 - Requires `navigator.mediaDevices.getUserMedia`.
+- Screen recording requires `navigator.mediaDevices.getDisplayMedia`.
 - Recording requires `MediaRecorder`.
 - MIME support varies. Use `getSupportedMimeType()`.
 - iOS and Android camera switching works best with `facingMode: { ideal: 'user' }` or `facingMode: { ideal: 'environment' }`.
@@ -368,6 +406,7 @@ Do not assume permission is granted before calling `start()`. Do not assume devi
 - Website: https://modeitsch.com/react-webcam-kit/
 - React webcam capture guide: https://modeitsch.com/react-webcam-kit/react-webcam-capture/
 - React camera recording guide: https://modeitsch.com/react-webcam-kit/react-camera-recording/
+- React screen recorder guide: https://modeitsch.com/react-webcam-kit/react-screen-recorder/
 - React front/back camera guide: https://modeitsch.com/react-webcam-kit/react-front-back-camera/
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
 - React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/

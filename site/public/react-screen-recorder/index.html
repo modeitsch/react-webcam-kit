@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Screen Recorder - getDisplayMedia and MediaRecorder hook</title>
+    <meta
+      name="description"
+      content="Build a React screen recorder with useDisplayMedia, useMediaRecorder, Blob/File output, browser screen sharing lifecycle, and upload-ready recordings."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-screen-recorder/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React screen recorder</p>
+      <h1>Record screens, windows, and browser tabs in React.</h1>
+      <p class="lead">
+        Use `useDisplayMedia()` for browser screen sharing and `useMediaRecorder()` for recording
+        controls, Blob/File output, playback previews, and uploads.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Screen recorder example</h2>
+      <pre><code>import { useDisplayMedia, useMediaRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function ScreenRecorder() {
+  const screen = useDisplayMedia({ audio: true, video: true });
+  const recorder = useMediaRecorder({
+    fileName: 'screen-recording',
+    fileType: 'webm',
+    quality: 'hd',
+    stream: screen.stream,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    &lt;&gt;
+      &lt;button onClick={() =&gt; screen.start()}&gt;Share screen&lt;/button&gt;
+      &lt;button disabled={!screen.stream} onClick={() =&gt; recorder.start()}&gt;Record&lt;/button&gt;
+      &lt;button onClick={recorder.stop}&gt;Stop recording&lt;/button&gt;
+      {playbackUrl ? &lt;video src={playbackUrl} controls /&gt; : null}
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Screen recording features</h2>
+      <ul>
+        <li>Request screen, window, or tab capture with `useDisplayMedia()`.</li>
+        <li>Record the display stream with `useMediaRecorder()`.</li>
+        <li>Handle browser stop-sharing events with `status` and `onStop`.</li>
+        <li>Preview recorded Blobs with `useObjectUrl()`.</li>
+        <li>Upload recordings with `createUploadFormData()`.</li>
+      </ul>
+
+      <p class="note">
+        Browser screen capture must start from a user action. Display audio support depends on the
+        browser and the selected screen-sharing surface.
+      </p>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-webcam-capture/">React webcam capture</a>
+        <a href="../react-getusermedia-hooks/">React getUserMedia hooks</a>
+      </div>
+    </main>
+  </body>
+</html>

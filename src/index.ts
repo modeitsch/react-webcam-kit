@@ -3,6 +3,7 @@ export { Webcam, type WebcamHandle, type WebcamProps } from './components/Webcam
 export { normalizeMediaError } from './errors/normalizeMediaError';
 export { useCameraPermissions } from './hooks/useCameraPermissions';
 export { useDevices } from './hooks/useDevices';
+export { useDisplayMedia } from './hooks/useDisplayMedia';
 export {
   DEFAULT_RECORDER_MIME_TYPES,
   getRecordingPresetConstraints,
@@ -40,6 +41,8 @@ export type {
   UseCameraPermissionsOptions,
   UseCameraPermissionsResult,
   UseDevicesResult,
+  UseDisplayMediaOptions,
+  UseDisplayMediaResult,
   UseMediaRecorderOptions,
   UseMediaRecorderResult,
   UseWebcamOptions,

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Added `useDisplayMedia()` for browser screen, window, and tab capture.
+- Added typed display media options and result types.
+- Added docs and a crawlable React screen recorder guide for pairing display capture with
+  `useMediaRecorder()`.
+
 ## 0.5.0
 
 - Added recorder quality presets with `quality`, `RECORDING_QUALITY_PRESETS`, and

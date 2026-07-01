@@ -109,6 +109,47 @@ export function Recorder() {
 }
 ```
 
+## Record The Screen
+
+```tsx
+import { useDisplayMedia, useMediaRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function ScreenRecorder() {
+  const screen = useDisplayMedia({
+    audio: true,
+    video: true,
+  });
+  const recorder = useMediaRecorder({
+    fileName: 'screen-recording',
+    fileType: 'webm',
+    quality: 'hd',
+    stream: screen.stream,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void screen.start()}>
+        Share screen
+      </button>
+      <button type="button" disabled={!screen.stream} onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop recording
+      </button>
+      <button type="button" onClick={screen.stop}>
+        Stop sharing
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+Browsers require `getDisplayMedia()` to be started from a user action. The hook also handles the user
+ending screen sharing from the browser UI.
+
 ## Reduce Recorded File Size
 
 Use recorder bitrate options instead of recording at the browser default bitrate.

@@ -21,6 +21,7 @@ React camera capture, MediaRecorder, avatar upload, or mobile camera switching f
 - `useWebcam()` hook for stream lifecycle, permission state, and device switching
 - `useCameraPermissions()` hook for preflight permission UI
 - `useDevices()` hook for camera and microphone enumeration, maps, and counts
+- `useDisplayMedia()` hook for screen, window, and tab capture
 - `useMediaRecorder()` hook for typed video recording, duration, max-duration, and Blob output
 - `useObjectUrl()` hook for safe Blob previews
 - `downloadBlob()` helper for recording and screenshot downloads
@@ -121,6 +122,7 @@ import {
   downloadBlob,
   formatDuration,
   getRecordingPresetConstraints,
+  useDisplayMedia,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
@@ -180,6 +182,44 @@ Use `cancel()` when the user wants to discard a recording and retry without crea
 
 Use `muteAudio()` and `unmuteAudio()` to toggle microphone tracks during recording without changing
 the preview element.
+
+## Record The Screen
+
+```tsx
+import { useDisplayMedia, useMediaRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function ScreenRecorder() {
+  const screen = useDisplayMedia({
+    audio: true,
+    video: true,
+  });
+  const recorder = useMediaRecorder({
+    fileName: 'screen-recording',
+    fileType: 'webm',
+    quality: 'hd',
+    stream: screen.stream,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void screen.start()}>
+        Share screen
+      </button>
+      <button type="button" disabled={!screen.stream} onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop recording
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+`useDisplayMedia()` returns `status`, `stream`, `error`, `isSupported`, `start()`, and `stop()`. It
+also reacts when the user stops sharing from the browser UI.
 
 ## Upload A Screenshot Or Recording
 
@@ -453,6 +493,12 @@ state, and normalized errors.
 `refresh()`, and `requestPermission()`. `requestPermission()` probes the camera permission, stops the
 temporary stream, and resolves to `true` when permission was granted.
 
+### `useDisplayMedia()`
+
+`useDisplayMedia(options)` requests browser screen, window, or tab capture with
+`navigator.mediaDevices.getDisplayMedia()`. Pass the returned `stream` to `useMediaRecorder()` to
+build a React screen recorder.
+
 ### `formatDuration()`
 
 `formatDuration(duration)` formats milliseconds as `m:ss` for recorder timer UI.
@@ -474,11 +520,13 @@ Blob, canvas, or ImageData.
 - [Full LLM Context](./llms-full.txt)
 - [React Webcam Capture](https://modeitsch.com/react-webcam-kit/react-webcam-capture/)
 - [React Camera Recording](https://modeitsch.com/react-webcam-kit/react-camera-recording/)
+- [React Screen Recorder](https://modeitsch.com/react-webcam-kit/react-screen-recorder/)
 - [React QR Barcode Scanner](https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/)
 - [React Front/Back Camera](https://modeitsch.com/react-webcam-kit/react-front-back-camera/)
 - [React Avatar Capture](https://modeitsch.com/react-webcam-kit/react-avatar-capture/)
 - [React getUserMedia Hooks](https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/)
 - [React QR Barcode Scanner Guide](./docs/REACT-QR-BARCODE-SCANNER.md)
+- [React Screen Recorder Guide](./docs/REACT-SCREEN-RECORDER.md)
 - [API Reference](./docs/API.md)
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)

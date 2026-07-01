@@ -85,6 +85,23 @@ export interface UseCameraPermissionsResult {
   requestPermission: () => Promise<boolean>;
 }
 
+export interface UseDisplayMediaOptions {
+  audio?: DisplayMediaStreamOptions['audio'];
+  onError?: (error: CameraError) => void;
+  onStart?: (stream: MediaStream) => void;
+  onStop?: () => void;
+  video?: DisplayMediaStreamOptions['video'];
+}
+
+export interface UseDisplayMediaResult {
+  error: CameraError | null;
+  isSupported: boolean;
+  start: (constraintsOverride?: DisplayMediaStreamOptions) => Promise<MediaStream | null>;
+  status: CameraStatus;
+  stop: () => void;
+  stream: MediaStream | null;
+}
+
 export interface UseWebcamOptions {
   audio?: boolean;
   audioConstraints?: MediaStreamConstraints['audio'];

@@ -15,6 +15,7 @@ export { getRecordingPresetConstraints } from 'react-webcam-kit';
 export { useCameraPermissions } from 'react-webcam-kit';
 export { useWebcam } from 'react-webcam-kit';
 export { useDevices } from 'react-webcam-kit';
+export { useDisplayMedia } from 'react-webcam-kit';
 export { useMediaRecorder } from 'react-webcam-kit';
 export { useObjectUrl } from 'react-webcam-kit';
 export { downloadBlob } from 'react-webcam-kit';
@@ -256,6 +257,45 @@ const recorder = useMediaRecorder({
 
 `cancel()` stops the active recorder and discards collected chunks. It does not create a final Blob
 and does not call `onStop`.
+
+## `useDisplayMedia(options)`
+
+Use this hook to request screen, window, or tab capture through
+`navigator.mediaDevices.getDisplayMedia()`.
+
+```tsx
+const screen = useDisplayMedia({
+  audio: true,
+  video: true,
+});
+
+const recorder = useMediaRecorder({
+  fileName: 'screen-recording',
+  fileType: 'webm',
+  stream: screen.stream,
+});
+```
+
+### Options
+
+| Option    | Type                                 | Description                                       |
+| --------- | ------------------------------------ | ------------------------------------------------- |
+| `audio`   | `DisplayMediaStreamOptions['audio']` | Whether to request display audio.                 |
+| `video`   | `DisplayMediaStreamOptions['video']` | Display video constraints. Defaults to `true`.    |
+| `onStart` | `(stream) => void`                   | Runs after display capture starts.                |
+| `onStop`  | `() => void`                         | Runs after capture stops or browser sharing ends. |
+| `onError` | `(error) => void`                    | Runs with normalized display capture errors.      |
+
+### Result
+
+| Field         | Type                  | Description                                      |
+| ------------- | --------------------- | ------------------------------------------------ |
+| `status`      | `CameraStatus`        | Display capture lifecycle state.                 |
+| `stream`      | `MediaStream \| null` | Active display stream.                           |
+| `error`       | `CameraError \| null` | Last normalized display media error.             |
+| `isSupported` | `boolean`             | Whether `getDisplayMedia` is available.          |
+| `start`       | function              | Request display capture.                         |
+| `stop`        | function              | Stop tracks and clear the active display stream. |
 
 ## Recording Quality Presets
 

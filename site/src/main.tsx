@@ -52,6 +52,7 @@ const apiRows = [
     'useMediaRecorder()',
     'Records a MediaStream with duration, max-duration, MIME, bitrate, Blob, and File controls.',
   ],
+  ['useDisplayMedia()', 'Captures browser screens, windows, and tabs for screen recorder flows.'],
   ['useCameraPermissions()', 'Permission probe for preflight camera UI and unsupported browsers.'],
   ['formatDuration()', 'Formats recorder durations as compact timer labels.'],
   [
@@ -69,6 +70,7 @@ const capabilityItems = [
   'Preview camera streams in React without owning raw media setup on every screen',
   'Capture still frames as Data URLs, Blobs, canvases, or ImageData',
   'Record video streams with bitrate controls, cancel, Blob, and File output',
+  'Capture browser tabs, windows, or screens and record them with MediaRecorder',
   'Use low, medium, high, HD, and full-HD recording quality presets',
   'Build upload-ready FormData from screenshot and recording Blobs',
   'Record audio-only streams with the same MediaRecorder hook',
@@ -98,6 +100,7 @@ const qualityItems = [
 const guideItems = [
   ['React webcam capture', './react-webcam-capture/'],
   ['React camera recording', './react-camera-recording/'],
+  ['React screen recorder', './react-screen-recorder/'],
   ['React QR barcode scanner', './react-qr-barcode-scanner/'],
   ['Front and back camera switching', './react-front-back-camera/'],
   ['React avatar capture', './react-avatar-capture/'],
@@ -296,11 +299,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.5.0</dt>
+              <dt>0.6.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>23</dt>
+              <dt>24</dt>
               <dd>Public exports</dd>
             </div>
             <div>

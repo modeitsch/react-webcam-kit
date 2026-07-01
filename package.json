@@ -1,7 +1,7 @@
 {
   "name": "react-webcam-kit",
-  "version": "0.5.0",
-  "description": "React webcam component and hooks for camera preview, screenshots, recording, device switching, and getUserMedia cleanup.",
+  "version": "0.6.0",
+  "description": "React webcam and screen recorder hooks for camera preview, screenshots, recording, device switching, and media cleanup.",
   "license": "MIT",
   "author": "modeitsch",
   "homepage": "https://modeitsch.com/react-webcam-kit/",
@@ -44,6 +44,7 @@
     "docs/REACT-CAMERA-RECORDING.md",
     "docs/REACT-FRONT-BACK-CAMERA.md",
     "docs/REACT-QR-BARCODE-SCANNER.md",
+    "docs/REACT-SCREEN-RECORDER.md",
     "docs/REACT-WEBCAM-CAPTURE.md",
     "docs/RECIPES.md"
   ],
@@ -58,6 +59,9 @@
     "webcam-react",
     "browser-camera",
     "camera-recording",
+    "screen-recorder",
+    "screen-recording",
+    "react-screen-recorder",
     "react-qr-scanner",
     "barcode-scanner",
     "avatar-capture",

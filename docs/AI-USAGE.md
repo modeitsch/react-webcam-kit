@@ -29,6 +29,7 @@ npm install react-webcam-kit
 | Front/back mobile camera switching  | `switchFacingMode()` with `user` or `environment`         |
 | Exact selected device switching     | `switchDevice(deviceId)`                                  |
 | Video recording                     | `useMediaRecorder({ stream })`                            |
+| Screen recording                    | `useDisplayMedia()` plus `useMediaRecorder()`             |
 | Recording quality presets           | `quality` and `getRecordingPresetConstraints()`           |
 | Recorded Blob preview               | `useObjectUrl(blob)`                                      |
 | Download screenshots or recordings  | `downloadBlob(blobOrFile)`                                |
@@ -52,12 +53,48 @@ import {
   getSupportedMimeType,
   useCameraPermissions,
   useDevices,
+  useDisplayMedia,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
   type WebcamHandle,
 } from 'react-webcam-kit';
 ```
+
+## Screen Recording
+
+```tsx
+import { useDisplayMedia, useMediaRecorder, useObjectUrl } from 'react-webcam-kit';
+
+export function ScreenRecorder() {
+  const screen = useDisplayMedia({ audio: true, video: true });
+  const recorder = useMediaRecorder({
+    fileName: 'screen-recording',
+    fileType: 'webm',
+    quality: 'hd',
+    stream: screen.stream,
+  });
+  const playbackUrl = useObjectUrl(recorder.blob);
+
+  return (
+    <>
+      <button type="button" onClick={() => void screen.start()}>
+        Share screen
+      </button>
+      <button type="button" disabled={!screen.stream} onClick={() => recorder.start()}>
+        Record
+      </button>
+      <button type="button" onClick={recorder.stop}>
+        Stop recording
+      </button>
+      {playbackUrl ? <video src={playbackUrl} controls /> : null}
+    </>
+  );
+}
+```
+
+Start `useDisplayMedia().start()` from a user action. Pass `screen.stream` into
+`useMediaRecorder()` for recording.
 
 ## Quick Preview
 
@@ -348,6 +385,7 @@ constraints. Unsupported constraints should not be assumed to work across browse
 
 - Camera access requires HTTPS or localhost.
 - Camera APIs are browser-only. Use client-rendered components in SSR frameworks.
+- Screen capture requires `navigator.mediaDevices.getDisplayMedia`.
 - Device labels can be empty until the user grants permission.
 - `MediaRecorder` is not available in every browser.
 - MIME support differs by browser. Use `getSupportedMimeType()` for recording.
@@ -359,6 +397,7 @@ constraints. Unsupported constraints should not be assumed to work across browse
 
 - Recommend `<Webcam />` for simple previews and `useWebcam()` for custom UIs.
 - Recommend `useCameraPermissions()` for permission preflight UI.
+- Recommend `useDisplayMedia()` plus `useMediaRecorder()` for screen recorder examples.
 - Include `playsInline` and `muted` on preview videos.
 - Handle `null` screenshot results.
 - Handle permission, unsupported browser, and missing camera states.
