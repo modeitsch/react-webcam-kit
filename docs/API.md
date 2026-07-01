@@ -451,25 +451,12 @@ browser blocks canvas reads.
 
 ```ts
 type CameraStatus =
-  | 'idle'
-  | 'requesting'
-  | 'ready'
-  | 'stopping'
-  | 'stopped'
-  | 'denied'
-  | 'unsupported'
-  | 'error';
+  'idle' | 'requesting' | 'ready' | 'stopping' | 'stopped' | 'denied' | 'unsupported' | 'error';
 
 type ScreenshotFormat = 'image/webp' | 'image/png' | 'image/jpeg';
 
 type RecordingStatus =
-  | 'idle'
-  | 'recording'
-  | 'paused'
-  | 'stopping'
-  | 'stopped'
-  | 'unsupported'
-  | 'error';
+  'idle' | 'recording' | 'paused' | 'stopping' | 'stopped' | 'unsupported' | 'error';
 
 interface CameraError {
   name: string;

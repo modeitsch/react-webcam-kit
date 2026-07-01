@@ -1,14 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 export type CameraStatus =
-  | 'idle'
-  | 'requesting'
-  | 'ready'
-  | 'stopping'
-  | 'stopped'
-  | 'denied'
-  | 'unsupported'
-  | 'error';
+  'idle' | 'requesting' | 'ready' | 'stopping' | 'stopped' | 'denied' | 'unsupported' | 'error';
 
 export type ScreenshotFormat = 'image/webp' | 'image/png' | 'image/jpeg';
 
@@ -173,13 +166,7 @@ export interface WebcamChildrenProps {
 export type WebcamVideoProps = Omit<ComponentPropsWithoutRef<'video'>, 'children' | 'ref'>;
 
 export type RecordingStatus =
-  | 'idle'
-  | 'recording'
-  | 'paused'
-  | 'stopping'
-  | 'stopped'
-  | 'unsupported'
-  | 'error';
+  'idle' | 'recording' | 'paused' | 'stopping' | 'stopped' | 'unsupported' | 'error';
 
 export interface MediaRecorderError {
   name: string;
