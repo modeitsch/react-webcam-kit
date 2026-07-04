@@ -34,3 +34,9 @@ jobs:
 
       - name: Audit dependencies
         run: npm run audit
+
+      - name: Build camera recorder example
+        working-directory: examples/camera-recorder
+        run: |
+          npm install --package-lock=false
+          npm run build
