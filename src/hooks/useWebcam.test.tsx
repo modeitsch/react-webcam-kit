@@ -55,7 +55,10 @@ describe('useWebcam', () => {
     const video = document.createElement('video');
 
     act(() => {
-      result.current.videoRef.current = video;
+      Object.defineProperty(result.current.videoRef, 'current', {
+        configurable: true,
+        value: video,
+      });
     });
     await act(async () => {
       await result.current.start();

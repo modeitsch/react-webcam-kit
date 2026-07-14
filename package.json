@@ -1,6 +1,6 @@
 {
   "name": "react-webcam-kit",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "React webcam, screen recorder, and audio recorder hooks for camera preview, screenshots, recording, device switching, and media cleanup.",
   "license": "MIT",
   "author": "modeitsch",
@@ -22,9 +22,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -93,17 +98,20 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
     "audit": "npm audit --audit-level=high",
+    "package:check": "publint && attw --pack .",
     "test": "vitest run",
     "test:browser": "playwright test",
+    "test:types": "tsc --project tests/consumer/tsconfig.json",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run test:browser && npm run build",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run test:browser && npm run build && npm run test:types && npm run package:check",
     "prepublishOnly": "npm run verify"
   },
   "peerDependencies": {
     "react": ">=18.0.0 || >=19.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
@@ -117,6 +125,7 @@
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.4",
+    "publint": "^0.3.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "rimraf": "^6.0.1",

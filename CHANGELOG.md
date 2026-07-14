@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.1
+
+- Fixed package export metadata so CommonJS consumers resolve `dist/index.d.cts` instead of the ESM
+  declaration file.
+- Added `publint` and Are The Types Wrong checks to the release verification gate.
+- Added consumer TypeScript tests that import the package through its public export map.
+- Added React 18 and React 19 compatibility checks to CI.
+
 ## 0.7.0
 
 - Added `useAudioRecorder()` for microphone-only recording with built-in stream lifecycle.

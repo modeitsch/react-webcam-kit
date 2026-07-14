@@ -156,7 +156,7 @@ export interface UseWebcamResult {
     facingMode: VideoFacingModeEnum,
     constraints?: MediaTrackConstraints,
   ) => Promise<MediaStream | null>;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  videoRef: React.RefObject<HTMLVideoElement>;
 }
 
 export interface WebcamChildrenProps {

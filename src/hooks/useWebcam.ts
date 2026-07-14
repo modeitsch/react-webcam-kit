@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 
 import { captureFrame } from '../capture/captureFrame';
 import { normalizeMediaError } from '../errors/normalizeMediaError';
@@ -87,7 +88,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const optionsRef = useRef(options);
   const requestIdRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [error, setError] = useState<CameraError | null>(null);
   const [permission, setPermission] = useState<PermissionState | 'unsupported' | 'unknown'>(
@@ -407,6 +408,6 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     },
     switchDevice,
     switchFacingMode,
-    videoRef,
+    videoRef: videoRef as RefObject<HTMLVideoElement>,
   };
 }
