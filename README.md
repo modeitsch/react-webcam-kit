@@ -16,6 +16,36 @@ switching, front/back mobile camera flows, and safe `getUserMedia` cleanup.
 component when you want a ready webcam preview, or the hooks and utilities when you need custom
 React camera capture, MediaRecorder, avatar upload, or mobile camera switching flows.
 
+## Why react-webcam-kit?
+
+Camera packages run in the browser, so every dependency matters. A webcam component should not pull
+in extra media libraries, hidden utilities, or large client-side code just to call browser APIs that
+already exist.
+
+`react-webcam-kit` is built for teams that care about bundle size, predictable installs, and
+client-side performance:
+
+- **Zero runtime dependencies beyond React** - no transitive dependency tree, fewer vulnerability
+  surprises, and no unexpected bundle-size changes from nested packages.
+- **Small published browser entry** - the current npm release is about `6.2 KB` gzip on Bundlephobia,
+  and this repo now enforces size budgets in CI.
+- **Hooks-first React API** - functional components and hooks only, with no class component layer or
+  polyfill-heavy architecture.
+- **Native browser media APIs** - wraps `getUserMedia`, `getDisplayMedia`, canvas capture, and
+  `MediaRecorder` directly instead of shipping a recording engine.
+- **Typed package exports** - ESM, CommonJS, and TypeScript declarations are checked with `publint`,
+  Are The Types Wrong, and consumer TypeScript tests.
+
+| Package                  | Runtime dependencies | Browser entry size           | Type checks |
+| ------------------------ | -------------------- | ---------------------------- | ----------- |
+| `react-webcam-kit`       | React peer only      | ~6.2 KB gzip on Bundlephobia | Built in    |
+| Typical webcam wrappers  | Varies by package    | Recheck per release          | Varies      |
+| Recording/helper bundles | Often larger         | Recheck per release          | Varies      |
+
+Bundle benchmarks change over time, so check the live
+[Bundlephobia report](https://bundlephobia.com/package/react-webcam-kit) before making a final
+production choice.
+
 ## Highlights
 
 - `<Webcam />` preview component with imperative capture methods

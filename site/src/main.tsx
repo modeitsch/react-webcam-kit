@@ -24,6 +24,10 @@ const navItems = [
 
 const featureItems = [
   {
+    title: 'Small by design',
+    body: 'No runtime dependencies beyond React, a small browser entry, and CI bundle-size budgets for every release.',
+  },
+  {
     title: 'Drop-in component',
     body: 'A focused <Webcam /> component with ref capture, render-prop access, mirrored preview, and native video props.',
   },
@@ -36,8 +40,12 @@ const featureItems = [
     body: 'Capture Data URLs or Blobs, tune screenshot quality, target custom dimensions, and clean up streams predictably.',
   },
   {
-    title: 'Recording helper',
+    title: 'Native recording',
     body: 'Record streams with quality presets, browser MIME selection, pause/resume, audio mute, chunks, and final Blob/File output.',
+  },
+  {
+    title: 'Package checks',
+    body: 'ESM, CommonJS, and TypeScript declarations are checked with publint, Are The Types Wrong, and consumer type tests.',
   },
 ];
 
@@ -92,6 +100,8 @@ const qualityItems = [
   'TypeScript declarations',
   'ESM and CommonJS output',
   'React 18 and 19 peer range',
+  'Zero runtime dependencies beyond React',
+  'Bundle-size CI budget',
   'Vitest coverage for public behavior',
   'ESLint 9 and Prettier checks',
   'GitHub Pages workflow',
