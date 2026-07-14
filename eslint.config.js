@@ -12,6 +12,7 @@ export default defineConfig(
       'dist-site',
       'coverage',
       'playwright-report',
+      'tests/consumer',
       'test-results',
     ],
   },
