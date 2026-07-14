@@ -1,0 +1,22 @@
+{
+  "name": "react-webcam-kit-next-app-router-starter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  },
+  "dependencies": {
+    "next": "^16.2.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-webcam-kit": "file:../..",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6"
+  }
+}

@@ -7,6 +7,10 @@
 - Added `publint` and Are The Types Wrong checks to the release verification gate.
 - Added consumer TypeScript tests that import the package through its public export map.
 - Added React 18 and React 19 compatibility checks to CI.
+- Hardened the npm publish workflow for trusted publishing with provenance.
+- Added a bundle-size verification gate for the published ESM and CommonJS entries.
+- Added Vite, Next.js App Router, and React Router starter examples.
+- Added a release guide for repeatable npm publishing.
 
 ## 0.7.0
 

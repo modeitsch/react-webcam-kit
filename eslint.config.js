@@ -11,6 +11,7 @@ export default defineConfig(
       '**/node_modules',
       'dist-site',
       'coverage',
+      'examples',
       'playwright-report',
       'tests/consumer',
       'test-results',

@@ -555,6 +555,7 @@ Blob, canvas, or ImageData.
 - [Recipes](./docs/RECIPES.md)
 - [Browser Notes](./docs/BROWSER-NOTES.md)
 - [Migration Guide](./docs/MIGRATION.md)
+- [Release Guide](./docs/RELEASE.md)
 - [Comparison Notes](./docs/COMPARISON.md)
 - [Browser Compatibility Matrix](./docs/COMPATIBILITY.md)
 - [Security Policy](./SECURITY.md)
@@ -563,6 +564,9 @@ Blob, canvas, or ImageData.
 ## Examples
 
 - [Camera recorder starter](./examples/camera-recorder)
+- [Vite starter](./examples/vite-starter)
+- [Next.js App Router starter](./examples/next-app-router)
+- [React Router starter](./examples/react-router)
 - [Basic Vite example](./examples/basic)
 - [Avatar capture](./examples/avatar-capture)
 - [Video recorder](./examples/vite-recorder)
@@ -584,6 +588,7 @@ Available scripts:
 - `npm run format:check` - verify Prettier formatting
 - `npm run test` - run Vitest
 - `npm run audit` - check production and development dependencies for high severity advisories
+- `npm run size` - enforce the published bundle-size budget
 - `npm run verify` - run the full release gate
 
 ## Publishing
@@ -591,8 +596,8 @@ Available scripts:
 Release from a version tag:
 
 ```bash
-git tag v0.7.0
-git push origin v0.7.0
+git tag v0.7.2
+git push origin master --tags
 ```
 
 The publish workflow verifies the package, publishes to npm with provenance, and creates the GitHub
@@ -602,8 +607,10 @@ flow:
 - Publisher: GitHub Actions
 - Repository owner: `modeitsch`
 - Repository name: `react-webcam-kit`
-- Workflow file: `.github/workflows/publish.yml`
+- Workflow file: `publish.yml`
 - Environment: leave empty unless you add one to the workflow
+
+See the [Release Guide](./docs/RELEASE.md) for the full checklist.
 
 Before local dry-runs:
 
