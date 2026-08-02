@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, Ref, ReactNode, VideoHTMLAttributes } from 'react';
 
 export type CameraStatus =
   'idle' | 'requesting' | 'ready' | 'stopping' | 'stopped' | 'denied' | 'unsupported' | 'error';
@@ -34,6 +34,11 @@ export interface CameraError {
     | 'overconstrained'
     | 'security'
     | 'unknown';
+  /**
+   * The constraint that could not be satisfied. Only present for `OverconstrainedError`
+   * (`type: 'overconstrained'`), where it names the failing constraint such as `'facingMode'`.
+   */
+  constraint?: string;
   cause?: unknown;
 }
 
@@ -132,6 +137,14 @@ export interface UseWebcamOptions {
   videoConstraints?: MediaStreamConstraints['video'];
 }
 
+/**
+ * Props accepted by (and returned for) the preview `<video>` element. The `ref` is a callback
+ * ref so the active stream is attached the moment the element mounts.
+ */
+export type WebcamVideoElementProps = Omit<VideoHTMLAttributes<HTMLVideoElement>, 'ref'> & {
+  ref?: Ref<HTMLVideoElement>;
+};
+
 export interface UseWebcamResult {
   applyVideoConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
   devices: MediaDeviceInfo[];
@@ -139,6 +152,12 @@ export interface UseWebcamResult {
   getCanvas: (options?: ScreenshotOptions) => HTMLCanvasElement | null;
   getScreenshot: (options?: ScreenshotOptions) => string | null;
   getScreenshotBlob: (options?: ScreenshotOptions) => Promise<Blob | null>;
+  /**
+   * Spreadable props for the preview element: `<video {...getVideoProps()} />`.
+   * Prefer this over `videoRef` — it attaches the stream on mount, so it works even when the
+   * element is rendered conditionally (for example only once `status === 'ready'`).
+   */
+  getVideoProps: (props?: WebcamVideoElementProps) => WebcamVideoElementProps;
   permission: PermissionState | 'unsupported' | 'unknown';
   refreshDevices: () => Promise<void>;
   restart: () => Promise<MediaStream | null>;
@@ -156,7 +175,7 @@ export interface UseWebcamResult {
     facingMode: VideoFacingModeEnum,
     constraints?: MediaTrackConstraints,
   ) => Promise<MediaStream | null>;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export interface WebcamChildrenProps {

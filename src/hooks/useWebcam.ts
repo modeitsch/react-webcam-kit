@@ -9,6 +9,7 @@ import type {
   ScreenshotOptions,
   UseWebcamOptions,
   UseWebcamResult,
+  WebcamVideoElementProps,
 } from '../types';
 
 const stoppedTracks = new WeakSet<MediaStreamTrack>();
@@ -51,32 +52,30 @@ function getMediaRequestKey(options: UseWebcamOptions, override?: MediaStreamCon
   return JSON.stringify(override ?? buildConstraints(options));
 }
 
-async function queryCameraPermission() {
+async function queryCameraPermissionStatus() {
   if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
-    return 'unknown' as const;
+    return null;
   }
 
   try {
-    const status = await navigator.permissions.query({ name: 'camera' });
-    return status.state;
+    return await navigator.permissions.query({ name: 'camera' as PermissionName });
   } catch {
-    return 'unknown' as const;
+    return null;
   }
+}
+
+async function queryCameraPermission() {
+  const status = await queryCameraPermissionStatus();
+  return status?.state ?? ('unknown' as const);
 }
 
 export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const {
+    audio = false,
     enabled = true,
     forceScreenshotSourceSize = false,
     imageSmoothing = true,
     mirrored = false,
-    onDevicesChanged,
-    onError,
-    onPermissionChange,
-    onStart,
-    onStop,
-    onUserMedia,
-    onUserMediaError,
     screenshotFormat = 'image/webp',
     screenshotQuality = 0.92,
     startOnMount = true,
@@ -88,7 +87,10 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const optionsRef = useRef(options);
   const requestIdRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Tracks whether the consumer *wants* the camera running. `stop()` clears it so that
+  // nothing (status changes, re-renders, errors) can silently restart the stream.
+  const shouldRunRef = useRef(startOnMount);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [error, setError] = useState<CameraError | null>(null);
   const [permission, setPermission] = useState<PermissionState | 'unsupported' | 'unknown'>(
@@ -97,7 +99,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [selectedFacingMode, setSelectedFacingMode] = useState<VideoFacingModeEnum | null>(null);
   const [status, setStatus] = useState<CameraStatus>('idle');
-  const [, setStream] = useState<MediaStream | null>(null);
+  const [stream, setStreamState] = useState<MediaStream | null>(null);
   const constraintsKey = JSON.stringify({
     audio: options.audio,
     audioConstraints: options.audioConstraints,
@@ -106,6 +108,30 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
   const previousConstraintsKeyRef = useRef(constraintsKey);
 
   optionsRef.current = options;
+
+  const setStream = useCallback((nextStream: MediaStream | null) => {
+    streamRef.current = nextStream;
+    setStreamState(nextStream);
+  }, []);
+
+  const attachVideoNode = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+
+    if (node && node.srcObject !== streamRef.current) {
+      node.srcObject = streamRef.current;
+    }
+  }, []);
+
+  const getVideoProps = useCallback(
+    (props: WebcamVideoElementProps = {}): WebcamVideoElementProps => ({
+      autoPlay: true,
+      muted: !audio,
+      playsInline: true,
+      ...props,
+      ref: attachVideoNode,
+    }),
+    [attachVideoNode, audio],
+  );
 
   const refreshDevices = useCallback(async () => {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
@@ -116,22 +142,22 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     try {
       const nextDevices = await navigator.mediaDevices.enumerateDevices();
       setDevices(nextDevices);
-      onDevicesChanged?.(nextDevices);
+      optionsRef.current.onDevicesChanged?.(nextDevices);
     } catch {
       setDevices([]);
     }
-  }, [onDevicesChanged]);
+  }, []);
 
   const applyPermission = useCallback(
     async (fallback?: PermissionState | 'unsupported' | 'unknown') => {
       const nextPermission = fallback ?? (await queryCameraPermission());
       setPermission(nextPermission);
-      onPermissionChange?.(nextPermission);
+      optionsRef.current.onPermissionChange?.(nextPermission);
     },
-    [onPermissionChange],
+    [],
   );
 
-  const stop = useCallback(() => {
+  const teardown = useCallback(() => {
     requestIdRef.current += 1;
     const currentStream = streamRef.current;
 
@@ -142,7 +168,6 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
 
     setStatus('stopping');
     stopMediaStream(currentStream);
-    streamRef.current = null;
     setStream(null);
 
     if (videoRef.current) {
@@ -150,13 +175,20 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     }
 
     setStatus('stopped');
-    onStop?.();
-  }, [onStop]);
+    optionsRef.current.onStop?.();
+  }, [setStream]);
+
+  const stop = useCallback(() => {
+    shouldRunRef.current = false;
+    teardown();
+  }, [teardown]);
 
   const start = useCallback(
     async (constraintsOverride?: MediaStreamConstraints) => {
       const currentOptions = optionsRef.current;
       const mediaRequestKey = getMediaRequestKey(currentOptions, constraintsOverride);
+
+      shouldRunRef.current = true;
 
       if (inFlightRequestKeyRef.current === mediaRequestKey && inFlightRequestRef.current) {
         return inFlightRequestRef.current;
@@ -170,8 +202,8 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
         };
         setError(unsupportedError);
         setStatus('unsupported');
-        onError?.(unsupportedError);
-        onUserMediaError?.(unsupportedError);
+        currentOptions.onError?.(unsupportedError);
+        currentOptions.onUserMediaError?.(unsupportedError);
         void applyPermission('unsupported');
         return null;
       }
@@ -192,9 +224,14 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
             return null;
           }
 
-          stopMediaStream(streamRef.current);
-          streamRef.current = nextStream;
+          // Swap the previous stream out only after the new one is live so device
+          // switching does not flash a black frame.
+          const previousStream = streamRef.current;
           setStream(nextStream);
+
+          if (previousStream && previousStream !== nextStream) {
+            stopMediaStream(previousStream);
+          }
 
           if (videoRef.current) {
             videoRef.current.srcObject = nextStream;
@@ -203,16 +240,16 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
           setStatus('ready');
           void refreshDevices();
           void applyPermission('granted');
-          onStart?.(nextStream);
-          onUserMedia?.(nextStream);
+          optionsRef.current.onStart?.(nextStream);
+          optionsRef.current.onUserMedia?.(nextStream);
           return nextStream;
         } catch (caughtError) {
           const normalizedError = normalizeMediaError(caughtError);
           setError(normalizedError);
           setStatus(normalizedError.type === 'permission-denied' ? 'denied' : 'error');
           void applyPermission(normalizedError.type === 'permission-denied' ? 'denied' : undefined);
-          onError?.(normalizedError);
-          onUserMediaError?.(normalizedError);
+          optionsRef.current.onError?.(normalizedError);
+          optionsRef.current.onUserMediaError?.(normalizedError);
           return null;
         }
       })();
@@ -229,44 +266,46 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
         }
       }
     },
-    [applyPermission, onError, onStart, onUserMedia, onUserMediaError, refreshDevices],
+    [applyPermission, refreshDevices, setStream],
   );
 
   const restart = useCallback(async () => {
-    stop();
+    teardown();
     return start();
-  }, [start, stop]);
+  }, [start, teardown]);
 
   const switchDevice = useCallback(
     async (deviceId: string, constraints: MediaTrackConstraints = {}) => {
+      const currentOptions = optionsRef.current;
       setSelectedDeviceId(deviceId);
       setSelectedFacingMode(null);
-      stop();
+
       return start({
-        ...(options.audio ? { audio: options.audioConstraints ?? true } : {}),
+        ...(currentOptions.audio ? { audio: currentOptions.audioConstraints ?? true } : {}),
         video: {
           ...constraints,
           deviceId: { exact: deviceId },
         },
       });
     },
-    [options.audio, options.audioConstraints, start, stop],
+    [start],
   );
 
   const switchFacingMode = useCallback(
     async (facingMode: VideoFacingModeEnum, constraints: MediaTrackConstraints = {}) => {
+      const currentOptions = optionsRef.current;
       setSelectedDeviceId(null);
       setSelectedFacingMode(facingMode);
-      stop();
+
       return start({
-        ...(options.audio ? { audio: options.audioConstraints ?? true } : {}),
+        ...(currentOptions.audio ? { audio: currentOptions.audioConstraints ?? true } : {}),
         video: {
           facingMode: { ideal: facingMode },
           ...constraints,
         },
       });
     },
-    [options.audio, options.audioConstraints, start, stop],
+    [start],
   );
 
   const applyVideoConstraints = useCallback(async (constraints: MediaTrackConstraints) => {
@@ -333,13 +372,24 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
       requestIdRef.current += 1;
       stopMediaStream(currentStream);
       streamRef.current = null;
-      setStream(null);
 
       if (currentStream) {
         optionsRef.current.onStop?.();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the video element in sync with the active stream. This runs after every commit so
+  // a `<video>` that mounts later (e.g. rendered only once `status === 'ready'`) still gets
+  // the stream attached instead of staying black.
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (video && video.srcObject !== streamRef.current) {
+      video.srcObject = streamRef.current;
+    }
+  });
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -352,25 +402,66 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
 
     previousConstraintsKeyRef.current = constraintsKey;
 
-    if (enabled && streamRef.current) {
+    if (enabled && shouldRunRef.current && streamRef.current) {
       void start();
     }
   }, [constraintsKey, enabled, start]);
 
+  // Only reacts to `enabled`. Deliberately does NOT depend on `status`: doing so restarted
+  // the stream every time it changed, which made `stop()` a no-op and turned a denied
+  // permission into an unbounded getUserMedia retry loop.
   useEffect(() => {
     if (!mountedRef.current) {
       return;
     }
 
     if (!enabled) {
-      stop();
+      const wasRunning = shouldRunRef.current;
+      teardown();
+      // Preserve intent so flipping `enabled` back on resumes the previous state.
+      shouldRunRef.current = wasRunning;
       return;
     }
 
-    if (startOnMount && !streamRef.current && status !== 'requesting') {
+    if (shouldRunRef.current && !streamRef.current) {
       void start();
     }
-  }, [enabled, start, startOnMount, status, stop]);
+  }, [enabled, start, teardown]);
+
+  // Surface tracks that end on their own (device unplugged, taken over by another app,
+  // revoked by the browser) instead of leaving `status` stuck on 'ready'.
+  useEffect(() => {
+    if (!stream) {
+      return undefined;
+    }
+
+    const tracks = stream.getTracks();
+    const handleEnded = () => {
+      if (streamRef.current !== stream) {
+        return;
+      }
+
+      stopMediaStream(stream);
+      setStream(null);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+
+      setStatus('stopped');
+      optionsRef.current.onStop?.();
+    };
+
+    tracks.forEach((track) => {
+      track.addEventListener?.('ended', handleEnded);
+    });
+
+    return () => {
+      tracks.forEach((track) => {
+        track.removeEventListener?.('ended', handleEnded);
+      });
+    };
+  }, [setStream, stream]);
 
   useEffect(() => {
     if (!isMediaSupported()) {
@@ -388,6 +479,35 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     };
   }, [refreshDevices]);
 
+  // Reflect permission changes made outside the page (browser site settings, OS privacy panel).
+  useEffect(() => {
+    let cancelled = false;
+    let permissionStatus: PermissionStatus | null = null;
+
+    const handleChange = () => {
+      if (!permissionStatus) {
+        return;
+      }
+
+      setPermission(permissionStatus.state);
+      optionsRef.current.onPermissionChange?.(permissionStatus.state);
+    };
+
+    void queryCameraPermissionStatus().then((nextStatus) => {
+      if (cancelled || !nextStatus) {
+        return;
+      }
+
+      permissionStatus = nextStatus;
+      nextStatus.addEventListener?.('change', handleChange);
+    });
+
+    return () => {
+      cancelled = true;
+      permissionStatus?.removeEventListener?.('change', handleChange);
+    };
+  }, []);
+
   return {
     applyVideoConstraints,
     devices,
@@ -395,6 +515,7 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     getCanvas,
     getScreenshot,
     getScreenshotBlob,
+    getVideoProps,
     permission,
     refreshDevices,
     restart,
@@ -408,6 +529,6 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     },
     switchDevice,
     switchFacingMode,
-    videoRef: videoRef as RefObject<HTMLVideoElement>,
+    videoRef: videoRef as RefObject<HTMLVideoElement | null>,
   };
 }

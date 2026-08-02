@@ -142,26 +142,20 @@ export const Webcam = forwardRef<WebcamHandle, WebcamProps>(function Webcam(prop
       applyVideoConstraints: webcam.applyVideoConstraints,
       getCanvas: (captureOptions) =>
         webcam.getCanvas({
-          height: minScreenshotHeight,
           minHeight: minScreenshotHeight,
           minWidth: minScreenshotWidth,
-          width: minScreenshotWidth,
           ...captureOptions,
         }),
       getScreenshot: (captureOptions) =>
         webcam.getScreenshot({
-          height: minScreenshotHeight,
           minHeight: minScreenshotHeight,
           minWidth: minScreenshotWidth,
-          width: minScreenshotWidth,
           ...captureOptions,
         }),
       getScreenshotBlob: (captureOptions) =>
         webcam.getScreenshotBlob({
-          height: minScreenshotHeight,
           minHeight: minScreenshotHeight,
           minWidth: minScreenshotWidth,
-          width: minScreenshotWidth,
           ...captureOptions,
         }),
       start: () => webcam.start(),
@@ -191,13 +185,9 @@ export const Webcam = forwardRef<WebcamHandle, WebcamProps>(function Webcam(prop
   return (
     <>
       <video
-        autoPlay
         disablePictureInPicture={disablePictureInPicture}
-        muted={muted ?? !audio}
-        playsInline
-        ref={webcam.videoRef}
         style={videoStyle}
-        {...videoProps}
+        {...webcam.getVideoProps({ muted: muted ?? !audio, ...videoProps })}
       />
       {children?.({ getScreenshot: webcam.getScreenshot })}
       {shouldRenderFallback
