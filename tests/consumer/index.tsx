@@ -17,15 +17,36 @@ import Webcam, {
   getSupportedVideoMimeTypes,
   isPlaybackMimeTypeSupported,
   isRecorderMimeTypeSupported,
+  createChunkUploader,
   normalizeMediaError,
+  useAudioLevel,
   useAudioRecorder,
+  useBarcodeScanner,
+  useCameraCapabilities,
   useCameraPermissions,
+  useCompositeStream,
   useDevices,
   useDisplayMedia,
+  useFrameProcessor,
+  useImageCapture,
   useMediaRecorder,
+  useMediaPermissions,
+  useMicrophonePermissions,
   useObjectUrl,
   useWebcam,
+  type CameraCapabilities,
   type CameraError,
+  type ChunkUploader,
+  type DetectedBarcode,
+  type MediaPermissionKind,
+  type UseAudioLevelResult,
+  type UseBarcodeScannerResult,
+  type UseCameraCapabilitiesResult,
+  type UseCompositeStreamResult,
+  type UseFrameProcessorResult,
+  type UseImageCaptureResult,
+  type UseMediaPermissionsResult,
+  type WebcamVideoElementProps,
   type CaptureFrameOptions,
   type CaptureFrameResultType,
   type CreateUploadFormDataOptions,
@@ -119,9 +140,63 @@ function HooksConsumer() {
   assertType<MediaRecorder | null>(recorder.start());
   void assertType<Promise<MediaRecorder | null>>(audioRecorder.start());
   void assertType<Promise<Blob | null>>(webcam.getScreenshotBlob(screenshotOptions));
+  assertType<Blob[]>(recorder.getChunks());
+  assertType<WebcamVideoElementProps>(webcam.getVideoProps({ className: 'preview' }));
+
+  const capabilities = useCameraCapabilities(webcam.stream);
+  const photo = useImageCapture(webcam.stream, { videoRef: webcam.videoRef });
+  const level = useAudioLevel(audioRecorder.stream);
+  const scanner = useBarcodeScanner(webcam.videoRef, { formats: ['qr_code'] });
+  const processor = useFrameProcessor(webcam.videoRef, { fps: 10, onFrame: () => undefined });
+  const composite = useCompositeStream({
+    layers: [
+      { audio: true, stream: display.stream },
+      {
+        fit: 'cover',
+        height: 180,
+        mirrored: true,
+        stream: webcam.stream,
+        width: 320,
+        x: 940,
+        y: 520,
+      },
+    ],
+  });
+  const micPermissions = useMicrophonePermissions();
+  const mediaPermissions = useMediaPermissions({ kind: 'microphone' });
+
+  assertType<UseCameraCapabilitiesResult>(capabilities);
+  assertType<CameraCapabilities>(capabilities.capabilities);
+  assertType<boolean>(capabilities.supportsTorch);
+  void assertType<Promise<void>>(capabilities.setTorch(true));
+  void assertType<Promise<void>>(capabilities.setZoom(2));
+  assertType<UseImageCaptureResult>(photo);
+  void assertType<Promise<Blob | null>>(photo.takePhoto());
+  assertType<UseAudioLevelResult>(level);
+  assertType<number>(level.level);
+  assertType<Uint8Array | null>(level.getWaveform());
+  assertType<UseBarcodeScannerResult>(scanner);
+  assertType<DetectedBarcode | null>(scanner.lastResult);
+  assertType<UseFrameProcessorResult>(processor);
+  assertType<UseCompositeStreamResult>(composite);
+  assertType<MediaStream | null>(composite.stream);
+  assertType<UseMediaPermissionsResult>(micPermissions);
+  assertType<MediaPermissionKind>(mediaPermissions.kind);
 
   return null;
 }
+
+const chunkUploader = createChunkUploader({
+  fieldName: 'chunk',
+  maxRetries: 2,
+  uploadId: 'recording-1',
+  url: 'https://example.test/uploads',
+});
+
+assertType<ChunkUploader>(chunkUploader);
+chunkUploader.enqueue(new Blob(['x']), true);
+void assertType<Promise<void>>(chunkUploader.complete());
+assertType<number>(chunkUploader.uploaded);
 
 void assertType<ReactNode>(createElement(HooksConsumer));
 

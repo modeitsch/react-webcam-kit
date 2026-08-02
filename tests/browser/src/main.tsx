@@ -29,7 +29,39 @@ function BrowserSmokeApp() {
         Capture
       </button>
       <p aria-label="Capture result">{captureResult}</p>
+      <AutoStartPanel />
     </main>
+  );
+}
+
+/**
+ * Uses the defaults (`startOnMount: true`), which is the configuration where `stop()` used to be
+ * undone immediately by the restart effect. Also renders the preview conditionally so the late
+ * stream attachment is exercised against a real browser.
+ */
+function AutoStartPanel() {
+  const [getUserMediaCalls, setGetUserMediaCalls] = useState(0);
+  const camera = useWebcam({
+    audio: false,
+    onUserMedia: () => {
+      setGetUserMediaCalls((count) => count + 1);
+    },
+  });
+
+  return (
+    <section>
+      {camera.status === 'ready' ? (
+        <video aria-label="Deferred preview" {...camera.getVideoProps()} />
+      ) : null}
+      <p aria-label="Deferred status">{camera.status}</p>
+      <p aria-label="Deferred acquisitions">{getUserMediaCalls}</p>
+      <button type="button" onClick={camera.stop}>
+        Halt deferred
+      </button>
+      <button type="button" onClick={() => void camera.start()}>
+        Resume deferred
+      </button>
+    </section>
   );
 }
 

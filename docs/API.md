@@ -27,6 +27,15 @@ export { isPlaybackMimeTypeSupported } from 'react-webcam-kit';
 export { isRecorderMimeTypeSupported } from 'react-webcam-kit';
 export { captureFrame } from 'react-webcam-kit';
 export { normalizeMediaError } from 'react-webcam-kit';
+export { useCameraCapabilities } from 'react-webcam-kit';
+export { useBarcodeScanner } from 'react-webcam-kit';
+export { useImageCapture } from 'react-webcam-kit';
+export { useAudioLevel } from 'react-webcam-kit';
+export { useFrameProcessor } from 'react-webcam-kit';
+export { useCompositeStream } from 'react-webcam-kit';
+export { useMediaPermissions } from 'react-webcam-kit';
+export { useMicrophonePermissions } from 'react-webcam-kit';
+export { createChunkUploader } from 'react-webcam-kit';
 ```
 
 The default export is also `Webcam`.
@@ -144,6 +153,7 @@ const camera = useWebcam({ audio: false, startOnMount: false });
 | `getCanvas`             | function                                        | Capture a canvas.                             |
 | `getScreenshot`         | function                                        | Capture a Data URL.                           |
 | `getScreenshotBlob`     | function                                        | Capture a Blob.                               |
+| `getVideoProps`         | function                                        | Spreadable props for the preview element.     |
 
 ## `useDevices()`
 
@@ -446,6 +456,128 @@ const blob = await captureFrame(video, { type: 'blob', format: 'image/png' });
 
 The function returns `null` when the video is not ready, the canvas context cannot be created, or the
 browser blocks canvas reads.
+
+## `useCameraCapabilities(stream)`
+
+Reads and controls hardware features of the active video track.
+
+| Field                                   | Type                 | Description                                     |
+| --------------------------------------- | -------------------- | ----------------------------------------------- |
+| `capabilities`                          | `CameraCapabilities` | Normalized torch, zoom, focus and facing modes. |
+| `settings`                              | `MediaTrackSettings` | Current track settings.                         |
+| `supportsTorch` / `supportsZoom`        | `boolean`            | Feature detection for this specific camera.     |
+| `supportsFocusMode`                     | `boolean`            | Whether focus modes are reported.               |
+| `torch`                                 | `boolean`            | Whether the light is currently on.              |
+| `zoom`                                  | `number \| null`     | Current zoom level.                             |
+| `setTorch` / `setZoom` / `setFocusMode` | function             | Apply the corresponding `advanced` constraint.  |
+| `applyConstraints`                      | function             | Apply arbitrary track constraints.              |
+| `refresh`                               | function             | Re-read capabilities and settings.              |
+| `error`                                 | `Error \| null`      | Last constraint failure.                        |
+
+Torch and zoom are hardware dependent and absent on most desktop webcams. Branch on
+`supportsTorch`/`supportsZoom` before rendering controls. The torch capability is normalized across
+browsers that report a boolean and those that report a boolean sequence.
+
+## `useBarcodeScanner(videoRef, options)`
+
+Scans the preview using the browser's native `BarcodeDetector`. Adds no dependency and no bundle
+weight; `isSupported` is `false` where the API is missing (Safari, Firefox) so callers can fall back.
+
+### Options
+
+| Option             | Type                     | Default | Description                                      |
+| ------------------ | ------------------------ | ------- | ------------------------------------------------ |
+| `enabled`          | `boolean`                | `true`  | Start scanning automatically.                    |
+| `fps`              | `number`                 | `10`    | Detection attempts per second.                   |
+| `formats`          | `string[]`               | all     | Formats to detect, e.g. `['qr_code', 'ean_13']`. |
+| `continuous`       | `boolean`                | `false` | Report on every frame instead of on change.      |
+| `dedupeIntervalMs` | `number`                 | `1500`  | How long a repeated value is suppressed.         |
+| `onDetected`       | `(barcode, all) => void` | —       | Called for each newly detected code.             |
+| `onError`          | `(error: Error) => void` | —       | Called when detection throws.                    |
+
+### Result
+
+`results`, `lastResult`, `isScanning`, `isSupported`, `supportedFormats`, `error`, plus `start`,
+`stop` and `reset`.
+
+## `useImageCapture(stream, options)`
+
+Takes a still from the camera hardware rather than sampling the preview video, which on a phone is
+often an order of magnitude more pixels than `getScreenshot()`.
+
+| Option            | Type                                  | Default | Description                               |
+| ----------------- | ------------------------------------- | ------- | ----------------------------------------- |
+| `fallbackToFrame` | `boolean`                             | `true`  | Capture a preview frame when unsupported. |
+| `fallbackOptions` | `ScreenshotOptions`                   | —       | Capture options used for the fallback.    |
+| `videoRef`        | `RefObject<HTMLVideoElement \| null>` | —       | Required for the fallback path.           |
+
+Returns `takePhoto`, `grabFrame`, `photoCapabilities`, `isSupported` and `error`.
+
+## `useAudioLevel(stream, options)`
+
+Measures loudness for meters and visualisers. `level` is RMS amplitude in `0..1`; `peak` is the
+loudest sample in the current window.
+
+| Option                  | Type      | Default | Description                                             |
+| ----------------------- | --------- | ------- | ------------------------------------------------------- |
+| `enabled`               | `boolean` | `true`  | Run the analyser.                                       |
+| `fftSize`               | `number`  | `1024`  | Analyser FFT size.                                      |
+| `smoothingTimeConstant` | `number`  | `0.8`   | Analyser smoothing.                                     |
+| `updateInterval`        | `number`  | `100`   | How often `level`/`peak` are pushed to React state, ms. |
+
+Measurement runs every animation frame regardless of `updateInterval`; use `getLevel()` for the live
+value inside your own render loop, and `getWaveform()` / `getFrequencyData()` for visualisers. Those
+two reuse a single buffer — copy it if you need to retain it.
+
+Browsers start an `AudioContext` suspended until a user gesture, so the meter may read zero until the
+user interacts with the page.
+
+## `useFrameProcessor(videoRef, options)`
+
+Runs `onFrame` per decoded frame using `requestVideoFrameCallback`, falling back to
+`requestAnimationFrame`. Frames arriving while a previous async call is pending are dropped rather
+than queued, so a slow handler cannot build a backlog. Options: `enabled`, `fps`, `onFrame`,
+`onError`. Returns `isRunning`, `start`, `stop`.
+
+## `useCompositeStream(options)`
+
+Draws several streams onto a canvas and mixes their audio into one recordable stream.
+
+| Option            | Type               | Default      | Description                              |
+| ----------------- | ------------------ | ------------ | ---------------------------------------- |
+| `layers`          | `CompositeLayer[]` | —            | Drawn in order; later layers sit on top. |
+| `width`/`height`  | `number`           | `1280`/`720` | Output size.                             |
+| `frameRate`       | `number`           | `30`         | Capture frame rate.                      |
+| `backgroundColor` | `string`           | `'#000000'`  | Filled behind the layers.                |
+
+Each layer takes `stream`, optional `x`/`y`/`width`/`height`, `fit` (`'contain' | 'cover' | 'fill'`),
+`mirrored`, `opacity`, `audio` and `volume`. Returns `stream`, `start`, `stop`, `isRunning`,
+`isSupported`, `canvasRef` and `error`. Pass `stream` straight to `useMediaRecorder`.
+
+## `useMediaPermissions(options)` and `useMicrophonePermissions(options)`
+
+Preflights `'camera'` or `'microphone'` access via `kind`, releasing the probe stream immediately so
+the indicator light does not stay on. Same result shape as `useCameraPermissions()` plus `kind`.
+`useCameraPermissions()` is a thin wrapper with `kind: 'camera'`.
+
+## `createChunkUploader(options)`
+
+Uploads recording chunks as they arrive instead of buffering the whole recording in memory.
+
+| Option                   | Type                     | Default   | Description                          |
+| ------------------------ | ------------------------ | --------- | ------------------------------------ |
+| `url`                    | `string`                 | —         | Endpoint that receives each chunk.   |
+| `fieldName`              | `string`                 | `'chunk'` | Form field holding the chunk.        |
+| `fields`                 | `Record<string, string>` | `{}`      | Extra fields sent with every chunk.  |
+| `uploadId`               | `string`                 | —         | Correlates chunks for one recording. |
+| `headers`                | `Record<string, string>` | `{}`      | Request headers.                     |
+| `maxRetries`             | `number`                 | `3`       | Retries after the first attempt.     |
+| `retryDelayMs`           | `number`                 | `500`     | Base backoff; doubles each attempt.  |
+| `onProgress` / `onError` | function                 | —         | Progress and failure callbacks.      |
+
+Each request also carries `index` and `last`. Chunks upload strictly in order — a media container
+cannot be reassembled from out-of-order parts — and the queue halts on an unrecoverable failure,
+which `complete()` then rejects with.
 
 ## Types
 
