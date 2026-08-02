@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { captureFrame } from './captureFrame';
-import type { CaptureFrameOptions } from '../types';
+import type { ScreenshotOptions } from '../types';
 
 function createVideo(overrides: Partial<HTMLVideoElement> = {}) {
   return {
@@ -14,7 +14,7 @@ function createVideo(overrides: Partial<HTMLVideoElement> = {}) {
   } as HTMLVideoElement;
 }
 
-function captureSize(video: HTMLVideoElement, options: CaptureFrameOptions) {
+function captureSize(video: HTMLVideoElement, options: ScreenshotOptions) {
   const canvas = {
     width: 0,
     height: 0,

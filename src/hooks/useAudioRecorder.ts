@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { normalizeMediaError } from '../errors/normalizeMediaError';
 import { getSupportedAudioMimeTypes } from '../recording/codecSupport';
+import { isMediaDevicesSupported, useIsSupported } from '../support/useIsSupported';
 import type {
   CameraError,
   CameraStatus,
@@ -10,11 +11,7 @@ import type {
 } from '../types';
 import { useMediaRecorder } from './useMediaRecorder';
 
-function isAudioMediaSupported() {
-  return (
-    typeof navigator !== 'undefined' && typeof navigator.mediaDevices?.getUserMedia === 'function'
-  );
-}
+const isAudioMediaSupported = isMediaDevicesSupported;
 
 function buildAudioConstraints(options: UseAudioRecorderOptions): MediaStreamConstraints {
   return {
@@ -33,11 +30,11 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}): UseAudi
   const optionsRef = useRef(options);
   const streamRef = useRef<MediaStream | null>(null);
   const [mediaError, setMediaError] = useState<CameraError | null>(null);
-  const [mediaStatus, setMediaStatus] = useState<CameraStatus>(
-    isAudioMediaSupported() ? 'idle' : 'unsupported',
-  );
+  const [internalMediaStatus, setMediaStatus] = useState<CameraStatus>('idle');
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const isMediaSupported = isAudioMediaSupported();
+  // Probed through useSyncExternalStore so the server and the hydrating client agree.
+  const isMediaSupported = useIsSupported(isAudioMediaSupported);
+  const mediaStatus: CameraStatus = isMediaSupported ? internalMediaStatus : 'unsupported';
   optionsRef.current = options;
 
   const recorder = useMediaRecorder({

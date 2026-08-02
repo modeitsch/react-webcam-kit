@@ -218,6 +218,13 @@ export interface UseMediaRecorderOptions {
   onResume?: () => void;
   onStart?: (recorder: MediaRecorder) => void;
   onStop?: (blob: Blob, chunks: Blob[]) => void;
+  /**
+   * Publish each chunk to the reactive `chunks` array as it arrives. Defaults to `true`.
+   * Set to `false` for long recordings with a small `timeslice`: the consumer then re-renders
+   * once on stop instead of at the timeslice rate. Chunks remain available via
+   * `getChunks()` and `onDataAvailable`.
+   */
+  publishChunks?: boolean;
   quality?: RecordingQualityPreset;
   stream?: MediaStream | null;
   timeslice?: number;
@@ -237,6 +244,8 @@ export interface UseMediaRecorderResult {
   duration: number;
   error: MediaRecorderError | null;
   file: File | null;
+  /** Reads the recorded chunks synchronously, without waiting for a re-render. */
+  getChunks: () => Blob[];
   isAudioMuted: boolean;
   isSupported: boolean;
   mimeType: string | null;

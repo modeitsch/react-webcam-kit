@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { normalizeMediaError } from '../errors/normalizeMediaError';
+import { isMediaDevicesSupported, useIsSupported } from '../support/useIsSupported';
 import type {
   CameraError,
   UseCameraPermissionsOptions,
   UseCameraPermissionsResult,
 } from '../types';
 
-function isMediaSupported() {
-  return (
-    typeof navigator !== 'undefined' && typeof navigator.mediaDevices?.getUserMedia === 'function'
-  );
-}
+const isMediaSupported = isMediaDevicesSupported;
 
 function buildConstraints(options: UseCameraPermissionsOptions): MediaStreamConstraints {
   return {
@@ -48,10 +45,14 @@ export function useCameraPermissions(
 ): UseCameraPermissionsResult {
   const optionsRef = useRef(options);
   const [error, setError] = useState<CameraError | null>(null);
-  const [permission, setPermission] = useState<PermissionState | 'unsupported' | 'unknown'>(
-    isMediaSupported() ? 'unknown' : 'unsupported',
+  const [internalPermission, setPermission] = useState<PermissionState | 'unsupported' | 'unknown'>(
+    'unknown',
   );
-  const isSupported = isMediaSupported();
+  // Probed through useSyncExternalStore so the server and the hydrating client agree.
+  const isSupported = useIsSupported(isMediaSupported);
+  const permission: PermissionState | 'unsupported' | 'unknown' = isSupported
+    ? internalPermission
+    : 'unsupported';
   optionsRef.current = options;
 
   const applyPermission = useCallback(
