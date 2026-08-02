@@ -31,13 +31,15 @@ async function hydrate(serverHtml: string, element: React.ReactElement) {
   document.body.append(container);
 
   const recoverableErrors: string[] = [];
-  const root = await act(async () =>
-    hydrateRoot(container, element, {
+  const root = await act(async () => {
+    const nextRoot = hydrateRoot(container, element, {
       onRecoverableError: (error) => {
         recoverableErrors.push(String(error));
       },
-    }),
-  );
+    });
+    await Promise.resolve();
+    return nextRoot;
+  });
 
   return {
     cleanup: () => {
@@ -74,14 +76,11 @@ describe('hydration', () => {
   it('hydrates useMediaRecorder cleanly and upgrades to supported', async () => {
     // The client has MediaRecorder; the server markup was produced without it. Probing support
     // in a useState initialiser made these disagree and React reported a hydration mismatch.
-    vi.stubGlobal(
-      'MediaRecorder',
-      class {
-        static isTypeSupported() {
-          return true;
-        }
-      },
-    );
+    const MediaRecorderStub = function MediaRecorderStub() {
+      // Only feature detection and isTypeSupported are exercised here.
+    } as unknown as typeof MediaRecorder;
+    MediaRecorderStub.isTypeSupported = () => true;
+    vi.stubGlobal('MediaRecorder', MediaRecorderStub);
 
     const { cleanup, hydrationErrors, text } = await hydrate(
       '<span>unsupported|false</span>',

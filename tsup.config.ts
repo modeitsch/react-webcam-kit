@@ -7,6 +7,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   splitting: false,
-  treeshake: false,
+  treeshake: true,
   external: ['react', 'react-dom', 'react/jsx-runtime'],
 });

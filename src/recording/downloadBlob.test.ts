@@ -8,7 +8,7 @@ describe('downloadBlob', () => {
     document.body.innerHTML = '';
   });
 
-  it('downloads a blob with a temporary object URL and anchor', () => {
+  it('downloads a blob with a temporary object URL and anchor', async () => {
     const blob = new Blob(['recording'], { type: 'video/webm' });
     const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:download');
     const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
@@ -19,8 +19,15 @@ describe('downloadBlob', () => {
 
     expect(createObjectURL).toHaveBeenCalledWith(blob);
     expect(click).toHaveBeenCalledTimes(1);
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:download');
     expect(document.querySelector('a')).toBeNull();
+
+    // The URL must outlive the click: Firefox and Safari cancel the download if it is
+    // revoked before the blob has been read.
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:download');
   });
 
   it('uses the file name when a File is passed without a filename', () => {

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
 
 import { captureFrame } from '../capture/captureFrame';
 import { normalizeMediaError } from '../errors/normalizeMediaError';
@@ -58,7 +57,7 @@ async function queryCameraPermissionStatus() {
   }
 
   try {
-    return await navigator.permissions.query({ name: 'camera' as PermissionName });
+    return await navigator.permissions.query({ name: 'camera' });
   } catch {
     return null;
   }
@@ -377,7 +376,6 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
         optionsRef.current.onStop?.();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep the video element in sync with the active stream. This runs after every commit so
@@ -529,6 +527,6 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamResult {
     },
     switchDevice,
     switchFacingMode,
-    videoRef: videoRef as RefObject<HTMLVideoElement | null>,
+    videoRef,
   };
 }
