@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
 
-import type { DetectedBarcode, UseBarcodeScannerOptions, UseBarcodeScannerResult } from '../types';
+import type {
+  DetectedBarcode,
+  UseBarcodeScannerOptions,
+  UseBarcodeScannerResult,
+  WebcamElementRef,
+} from '../types';
 import { useFrameProcessor } from './useFrameProcessor';
 
 interface BarcodeDetectorLike {
@@ -27,7 +31,7 @@ function getBarcodeDetectorConstructor(): BarcodeDetectorConstructor | null {
  * library of their choice. Pair with `useCameraCapabilities().setTorch(true)` for low light.
  */
 export function useBarcodeScanner(
-  videoRef: RefObject<HTMLVideoElement | null>,
+  videoRef: WebcamElementRef<HTMLVideoElement>,
   options: UseBarcodeScannerOptions = {},
 ): UseBarcodeScannerResult {
   // `continuous` and `dedupeIntervalMs` are read from optionsRef inside the frame handler so

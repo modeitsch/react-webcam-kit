@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.8.0
+
+### Behavior Changes
+
+Two changes alter existing behavior. Neither changes a type signature, but both change what the
+camera does at runtime.
+
+- **`stop()` is now durable.** It previously had no lasting effect — the stream was reacquired
+  immediately — so code that called `stop()` and expected the camera to stay off was silently
+  broken, and code that relied on the stream still being live afterwards was relying on a bug.
+  The camera now stays stopped until `start()` is called again. If you worked around this with
+  `enabled={false}`, that still works and is unchanged.
+- **`minScreenshotWidth` / `minScreenshotHeight` are floors, not exact sizes.** Captures that were
+  being silently downscaled to the minimum will now come out at the source size. If you were
+  relying on the old behavior to get a fixed size, pass `width`/`height` instead.
 
 ### Fixed
 

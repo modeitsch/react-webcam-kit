@@ -138,6 +138,18 @@ export interface UseWebcamOptions {
 }
 
 /**
+ * A ref object that is honest about `current` being nullable and still assignable to the `ref`
+ * prop under both React 18 and React 19.
+ *
+ * React 18 types `RefObject<T>` as `{ readonly current: T | null }`, React 19 as
+ * `{ current: T }` — so `RefObject<HTMLVideoElement | null>` type-errors on React 18 and
+ * `RefObject<HTMLVideoElement>` hides the null on React 19. This structural shape satisfies both.
+ */
+export interface WebcamElementRef<T> {
+  current: T | null;
+}
+
+/**
  * Props accepted by (and returned for) the preview `<video>` element. The `ref` is a callback
  * ref so the active stream is attached the moment the element mounts.
  */
@@ -175,7 +187,7 @@ export interface UseWebcamResult {
     facingMode: VideoFacingModeEnum,
     constraints?: MediaTrackConstraints,
   ) => Promise<MediaStream | null>;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  videoRef: WebcamElementRef<HTMLVideoElement>;
 }
 
 export interface WebcamChildrenProps {
@@ -290,7 +302,7 @@ export interface UseImageCaptureOptions {
    * Defaults to `true`. Requires `videoRef`.
    */
   fallbackToFrame?: boolean;
-  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  videoRef?: WebcamElementRef<HTMLVideoElement>;
 }
 
 export interface UseImageCaptureResult {
@@ -301,7 +313,7 @@ export interface UseImageCaptureResult {
   photoCapabilities: Record<string, unknown> | null;
   /** Full-resolution still from the camera hardware, not a downscaled preview frame. */
   takePhoto: (settings?: Record<string, unknown>) => Promise<Blob | null>;
-  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  videoRef?: WebcamElementRef<HTMLVideoElement>;
 }
 
 export interface UseAudioLevelOptions {
@@ -392,7 +404,7 @@ export interface UseCompositeStreamOptions {
 }
 
 export interface UseCompositeStreamResult {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasRef: WebcamElementRef<HTMLCanvasElement>;
   error: Error | null;
   isRunning: boolean;
   isSupported: boolean;

@@ -1,16 +1,15 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useImageCapture } from './useImageCapture';
+import type { WebcamElementRef } from '../types';
 
 function createStream() {
   const track = { kind: 'video', stop: vi.fn() } as unknown as MediaStreamTrack;
   return { getVideoTracks: () => [track] } as unknown as MediaStream;
 }
 
-function videoRef() {
-  const ref = createRef<HTMLVideoElement>();
+function videoRef(): WebcamElementRef<HTMLVideoElement> {
   const video = {
     clientWidth: 640,
     clientHeight: 360,
@@ -18,8 +17,8 @@ function videoRef() {
     videoHeight: 720,
     videoWidth: 1280,
   } as unknown as HTMLVideoElement;
-  ref.current = video;
-  return ref;
+
+  return { current: video };
 }
 
 /**

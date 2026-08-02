@@ -1,5 +1,4 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useFrameProcessor } from './useFrameProcessor';
@@ -15,7 +14,6 @@ function flushFrame() {
 }
 
 function videoRef(readyState = 4, withVideoFrameCallback = false) {
-  const ref = createRef<HTMLVideoElement>();
   const video = document.createElement('video');
   Object.defineProperty(video, 'readyState', { configurable: true, value: readyState });
 
@@ -35,8 +33,7 @@ function videoRef(readyState = 4, withVideoFrameCallback = false) {
     });
   }
 
-  ref.current = video;
-  return ref;
+  return { current: video };
 }
 
 beforeEach(() => {

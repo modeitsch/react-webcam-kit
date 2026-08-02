@@ -1,9 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useBarcodeScanner } from './useBarcodeScanner';
-import type { DetectedBarcode } from '../types';
+import type { DetectedBarcode, WebcamElementRef } from '../types';
 
 function makeBarcode(rawValue: string, format = 'qr_code'): DetectedBarcode {
   return {
@@ -14,16 +13,14 @@ function makeBarcode(rawValue: string, format = 'qr_code'): DetectedBarcode {
   };
 }
 
-function videoRefWith(readyState = 4) {
-  const ref = createRef<HTMLVideoElement>();
+function videoRefWith(readyState = 4): WebcamElementRef<HTMLVideoElement> {
   const video = document.createElement('video');
   Object.defineProperty(video, 'readyState', { configurable: true, value: readyState });
   Object.defineProperty(video, 'requestVideoFrameCallback', {
     configurable: true,
     value: undefined,
   });
-  ref.current = video;
-  return ref;
+  return { current: video };
 }
 
 let rafCallbacks: FrameRequestCallback[] = [];

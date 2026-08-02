@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
-
-import type { UseFrameProcessorOptions, UseFrameProcessorResult } from '../types';
+import type { UseFrameProcessorOptions, UseFrameProcessorResult, WebcamElementRef } from '../types';
 
 /**
  * Declared separately rather than extending HTMLVideoElement: newer TypeScript DOM libs declare
@@ -31,7 +29,7 @@ const now =
  * (barcode decoding, an ML model) cannot build up an unbounded backlog.
  */
 export function useFrameProcessor(
-  videoRef: RefObject<HTMLVideoElement | null>,
+  videoRef: WebcamElementRef<HTMLVideoElement>,
   options: UseFrameProcessorOptions,
 ): UseFrameProcessorResult {
   const { enabled = true } = options;
