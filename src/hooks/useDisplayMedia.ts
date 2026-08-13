@@ -1,19 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { normalizeMediaError } from '../errors/normalizeMediaError';
+import { isDisplayMediaSupported, useIsSupported } from '../support/useIsSupported';
 import type {
   CameraError,
   CameraStatus,
   UseDisplayMediaOptions,
   UseDisplayMediaResult,
 } from '../types';
-
-function isDisplayMediaSupported() {
-  return (
-    typeof navigator !== 'undefined' &&
-    typeof navigator.mediaDevices?.getDisplayMedia === 'function'
-  );
-}
 
 function buildConstraints(options: UseDisplayMediaOptions): DisplayMediaStreamOptions {
   return {
@@ -34,10 +28,10 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<CameraError | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [status, setStatus] = useState<CameraStatus>(
-    isDisplayMediaSupported() ? 'idle' : 'unsupported',
-  );
-  const isSupported = isDisplayMediaSupported();
+  const [internalStatus, setStatus] = useState<CameraStatus>('idle');
+  // Probed through useSyncExternalStore so the server and the hydrating client agree.
+  const isSupported = useIsSupported(isDisplayMediaSupported);
+  const status: CameraStatus = isSupported ? internalStatus : 'unsupported';
   optionsRef.current = options;
 
   const clearTrackListeners = useCallback(() => {

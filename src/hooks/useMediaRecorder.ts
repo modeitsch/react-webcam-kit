@@ -12,6 +12,7 @@ import {
   DEFAULT_VIDEO_RECORDER_MIME_TYPES,
   getSupportedRecorderMimeTypes,
 } from '../recording/codecSupport';
+import { isMediaRecorderSupported, useIsSupported } from '../support/useIsSupported';
 
 export const DEFAULT_RECORDER_MIME_TYPES = DEFAULT_VIDEO_RECORDER_MIME_TYPES;
 
@@ -53,10 +54,6 @@ export const RECORDING_QUALITY_PRESETS = {
   },
 } satisfies Record<RecordingQualityPreset, RecordingQualityPresetConfig>;
 
-function isMediaRecorderSupported() {
-  return typeof MediaRecorder !== 'undefined';
-}
-
 function normalizeRecorderError(error: unknown): MediaRecorderError {
   if (error instanceof DOMException || error instanceof Error) {
     return {
@@ -97,9 +94,12 @@ export function getRecordingPresetConstraints(
   };
 }
 
-function getTime() {
-  return Date.now();
-}
+// `performance.now()` is monotonic. `Date.now()` is not: an NTP correction or a suspend/resume
+// can make a recording appear to jump forwards or even run backwards.
+const getTime =
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? () => performance.now()
+    : () => Date.now();
 
 function buildRecorderOptions(options: UseMediaRecorderOptions): MediaRecorderOptions {
   const mimeType = options.mimeType ?? getSupportedMimeType() ?? undefined;
@@ -149,14 +149,17 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
   const [recordingTimeLimitReached, setRecordingTimeLimitReached] = useState(false);
-  const [status, setStatus] = useState<RecordingStatus>(
-    isMediaRecorderSupported() ? 'idle' : 'unsupported',
-  );
+  const [internalStatus, setStatus] = useState<RecordingStatus>('idle');
 
   optionsRef.current = options;
 
-  const isSupported = isMediaRecorderSupported();
-  const mimeType = useMemo(() => options.mimeType ?? getSupportedMimeType(), [options.mimeType]);
+  // Probed through useSyncExternalStore so the server and the hydrating client agree.
+  const isSupported = useIsSupported(isMediaRecorderSupported);
+  const status: RecordingStatus = isSupported ? internalStatus : 'unsupported';
+  const mimeType = useMemo(
+    () => options.mimeType ?? (isSupported ? getSupportedMimeType() : null),
+    [isSupported, options.mimeType],
+  );
 
   const clearDurationTimers = useCallback(() => {
     if (durationIntervalRef.current) {
@@ -261,7 +264,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     setBlob(null);
     setFile(null);
     setError(null);
-    setStatus(isMediaRecorderSupported() ? 'idle' : 'unsupported');
+    setStatus('idle');
 
     if (currentRecorder && currentRecorder.state !== 'inactive') {
       currentRecorder.stop();
@@ -349,8 +352,14 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           }
 
           sessionChunks.push(event.data);
-          chunksRef.current = [...sessionChunks];
-          setChunks(chunksRef.current);
+          chunksRef.current = sessionChunks;
+
+          // Publishing a fresh array on every chunk re-renders the consumer tree at the
+          // timeslice rate (10x/s for `timeslice: 100`). Callers streaming chunks should use
+          // `onDataAvailable` or `getChunks()` and opt out with `publishChunks: false`.
+          if (optionsRef.current.publishChunks !== false) {
+            setChunks([...sessionChunks]);
+          }
         });
 
         nextRecorder.addEventListener('error', (event) => {
@@ -436,6 +445,8 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     stopCurrentRecorder();
   }, [stopCurrentRecorder]);
 
+  const getChunks = useCallback(() => chunksRef.current, []);
+
   const pause = useCallback(() => {
     const currentRecorder = recorderRef.current;
 
@@ -469,6 +480,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
     duration,
     error,
     file,
+    getChunks,
     isAudioMuted,
     isSupported,
     mimeType,

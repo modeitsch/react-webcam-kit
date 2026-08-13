@@ -1,20 +1,67 @@
 # React QR Barcode Scanner
 
-`react-webcam-kit` focuses on camera access, permissions, device selection, preview, capture, and
-recording. QR and barcode decoding is best kept as an app-level integration so the core package does
-not ship scanner dependencies to every webcam user.
+`react-webcam-kit` ships `useBarcodeScanner()`, a hook over the browser's native `BarcodeDetector`.
+It adds no dependency and no bundle weight, because the decoding is done by the browser. Where the
+API is missing the hook reports `isSupported: false` and stays inert, so you can fall back to a
+userland decoder without paying for one up front.
 
 ## When To Use This Package
 
 Use this package for scanner screens when you need:
 
+- QR and barcode scanning with no scanner dependency
 - Camera permission preflight before opening a scanner
 - Front/back camera switching for mobile scanning
-- A reusable camera preview around the browser `BarcodeDetector` API
+- Torch (flashlight) control for scanning in low light
 - Screenshot capture or recording alongside a scanner workflow
 - Typed camera errors and predictable stream cleanup
 
+## `useBarcodeScanner()`
+
+```tsx
+import { useBarcodeScanner, useCameraCapabilities, useWebcam } from 'react-webcam-kit';
+
+export function Scanner() {
+  const [value, setValue] = useState<string | null>(null);
+  const camera = useWebcam({
+    audio: false,
+    videoConstraints: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+    },
+  });
+  const controls = useCameraCapabilities(camera.stream);
+  const scanner = useBarcodeScanner(camera.videoRef, {
+    formats: ['qr_code', 'code_128', 'ean_13'],
+    onDetected: (code) => setValue(code.rawValue),
+  });
+
+  if (!scanner.isSupported) {
+    return <FallbackScanner />;
+  }
+
+  return (
+    <>
+      <video {...camera.getVideoProps()} />
+      {controls.supportsTorch && (
+        <button type="button" onClick={() => void controls.setTorch(!controls.torch)}>
+          {controls.torch ? 'Light off' : 'Light on'}
+        </button>
+      )}
+      <p>{value ?? 'Point the camera at a code'}</p>
+    </>
+  );
+}
+```
+
+A code that stays in frame reports once rather than at the scan rate. Pass `continuous: true` for a
+callback on every frame, or tune `dedupeIntervalMs`. Lower `fps` (default 10) if decoding is
+competing with other work on the main thread.
+
 ## Browser `BarcodeDetector` Example
+
+If you would rather drive the detector yourself, the hook is a thin wrapper over this:
 
 ```tsx
 import { useEffect, useState } from 'react';

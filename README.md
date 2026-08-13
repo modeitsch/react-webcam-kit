@@ -55,10 +55,18 @@ production choice.
 - `useAudioRecorder()` hook for microphone-only recording
 - `useDisplayMedia()` hook for screen, window, and tab capture
 - `useMediaRecorder()` hook for typed video recording, duration, max-duration, and Blob output
+- `useCameraCapabilities()` hook for torch (flashlight), optical zoom, and focus mode
+- `useBarcodeScanner()` hook for QR and barcode scanning on the native `BarcodeDetector`
+- `useImageCapture()` hook for full-resolution stills instead of downscaled preview frames
+- `useAudioLevel()` hook for volume meters, waveforms, and spectrum displays
+- `useFrameProcessor()` hook for per-frame work on `requestVideoFrameCallback`
+- `useCompositeStream()` hook for screen-plus-webcam picture-in-picture recording
+- `useMicrophonePermissions()` hook for audio-only permission preflight
 - `useObjectUrl()` hook for safe Blob previews
 - `downloadBlob()` helper for recording and screenshot downloads
 - `formatDuration()` helper for recorder timers
 - `blobToFile()` and `createUploadFormData()` helpers for upload-ready camera files
+- `createChunkUploader()` helper for streaming long recordings to a server as they record
 - Recorder quality presets for low, medium, high, HD, and full-HD capture
 - Recorder `cancel()`, `fileName`, `fileType`, and File output for retry/save flows
 - Recorder and playback MIME support helpers
@@ -322,7 +330,10 @@ export function CameraControls() {
 
   return (
     <>
-      <video ref={camera.videoRef} autoPlay playsInline muted />
+      {/* getVideoProps() supplies the ref plus autoPlay/playsInline/muted, and attaches the
+          stream as soon as the element mounts — so it also works when the <video> is rendered
+          conditionally, e.g. only once status === 'ready'. */}
+      <video {...camera.getVideoProps()} />
 
       <button type="button" onClick={() => void camera.start()}>
         Start
@@ -498,6 +509,22 @@ and `disablePictureInPicture`.
 
 ### `useWebcam()`
 
+`useWebcam(options)` owns the stream lifecycle and returns `status`, `error`, `permission`,
+`devices`, the capture helpers, and `start`/`stop`/`restart`/`switchDevice`/`switchFacingMode`.
+
+Attach the preview with `getVideoProps()` rather than `videoRef` where you can — it wires the ref,
+`autoPlay`, `playsInline` and `muted`, and attaches the stream the moment the element mounts:
+
+```tsx
+<video {...camera.getVideoProps({ className: 'preview' })} />
+```
+
+`start`, `stop`, `restart`, `switchDevice` and `switchFacingMode` are referentially stable, so they
+are safe to use in dependency arrays even when you pass inline `onError`/`onUserMedia` handlers.
+
+`stop()` is a durable intent: the stream stays stopped until you call `start()` again. Toggling the
+`enabled` option off and back on resumes whatever state the camera was in.
+
 ### `useMediaRecorder()`
 
 `useMediaRecorder(options)` records an active `MediaStream` and returns recording state, chunks, the
@@ -564,6 +591,137 @@ Use `blobToFile(blob, fileName)` to turn a screenshot or recording Blob into a n
 
 `captureFrame(video, options)` captures from a ready `HTMLVideoElement` and can return a Data URL,
 Blob, canvas, or ImageData.
+
+`minWidth` and `minHeight` are floors: they scale a capture _up_ when the source is smaller, and
+never force a downscale. Pass `width`/`height` to pin an exact size.
+
+### `useCameraCapabilities()`
+
+`useCameraCapabilities(stream)` reads what the active camera can do and controls it.
+
+```tsx
+const camera = useWebcam({ videoConstraints: { facingMode: { ideal: 'environment' } } });
+const controls = useCameraCapabilities(camera.stream);
+
+{
+  controls.supportsTorch && (
+    <button onClick={() => controls.setTorch(!controls.torch)}>
+      {controls.torch ? 'Light off' : 'Light on'}
+    </button>
+  );
+}
+{
+  controls.supportsZoom && (
+    <input
+      type="range"
+      min={controls.capabilities.zoom?.min}
+      max={controls.capabilities.zoom?.max}
+      step={controls.capabilities.zoom?.step}
+      value={controls.zoom ?? 1}
+      onChange={(event) => controls.setZoom(Number(event.target.value))}
+    />
+  );
+}
+```
+
+Torch and zoom are hardware dependent. Always branch on `supportsTorch`/`supportsZoom` — desktop
+webcams almost never have either.
+
+### `useBarcodeScanner()`
+
+`useBarcodeScanner(videoRef, options)` scans the preview for QR codes and barcodes using the
+browser's built-in `BarcodeDetector`. No extra dependency and no bundle cost.
+
+```tsx
+const camera = useWebcam({ videoConstraints: { facingMode: { ideal: 'environment' } } });
+const scanner = useBarcodeScanner(camera.videoRef, {
+  formats: ['qr_code', 'ean_13'],
+  onDetected: (code) => setValue(code.rawValue),
+});
+
+if (!scanner.isSupported) {
+  return <FallbackScanner />; // Safari and Firefox have no BarcodeDetector yet
+}
+```
+
+A code that stays in frame reports once rather than on every scan; pass `continuous: true` for
+per-frame callbacks, or tune `dedupeIntervalMs`.
+
+### `useImageCapture()`
+
+`useImageCapture(stream, options)` takes a still from the camera hardware rather than sampling the
+preview. On a phone this is often an order of magnitude more pixels than `getScreenshot()`.
+
+```tsx
+const camera = useWebcam();
+const photo = useImageCapture(camera.stream, { videoRef: camera.videoRef });
+
+const blob = await photo.takePhoto(); // falls back to a preview frame where unsupported
+```
+
+### `useAudioLevel()`
+
+`useAudioLevel(stream, options)` reports `level` (RMS, 0..1) and `peak` for meters, plus
+`getWaveform()` and `getFrequencyData()` for visualisers. Measurement runs every animation frame,
+but state updates are throttled to `updateInterval` (default 100ms); use `getLevel()` inside your
+own render loop for the live value.
+
+### `useFrameProcessor()`
+
+`useFrameProcessor(videoRef, { onFrame })` runs a callback per decoded frame using
+`requestVideoFrameCallback`, falling back to `requestAnimationFrame`. Frames are dropped rather
+than queued while an async handler is pending, so slow per-frame work cannot back up.
+
+### `useCompositeStream()`
+
+`useCompositeStream({ layers })` draws several streams onto a canvas and mixes their audio into a
+single recordable stream — a screen share with a webcam bubble, for example.
+
+```tsx
+const screen = useDisplayMedia({ audio: true });
+const camera = useWebcam({ audio: true });
+const composite = useCompositeStream({
+  height: 720,
+  width: 1280,
+  layers: [
+    { audio: true, stream: screen.stream },
+    {
+      audio: true,
+      fit: 'cover',
+      height: 180,
+      mirrored: true,
+      stream: camera.stream,
+      width: 320,
+      x: 940,
+      y: 520,
+    },
+  ],
+});
+const recorder = useMediaRecorder({ stream: composite.stream });
+```
+
+### `useMediaPermissions()` and `useMicrophonePermissions()`
+
+`useMediaPermissions({ kind })` preflights `'camera'` or `'microphone'` access and releases the
+probe stream immediately, so the indicator light does not stay on during an onboarding screen.
+`useCameraPermissions()` and `useMicrophonePermissions()` are thin wrappers over it.
+
+### `createChunkUploader()`
+
+`createChunkUploader(options)` uploads recording chunks as they arrive instead of buffering a whole
+recording in memory.
+
+```tsx
+const uploader = useMemo(() => createChunkUploader({ url: '/api/uploads', uploadId }), [uploadId]);
+const recorder = useMediaRecorder({
+  timeslice: 5000,
+  onDataAvailable: (event) => uploader.enqueue(event.data),
+  onStop: () => uploader.complete(),
+});
+```
+
+Chunks are sent strictly in order with retry and backoff — a media container cannot be reassembled
+from out-of-order parts.
 
 ## More Documentation
 

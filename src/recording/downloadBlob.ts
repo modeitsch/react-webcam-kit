@@ -1,4 +1,8 @@
 export function downloadBlob(blob: Blob | File, fileName?: string) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
 
@@ -10,5 +14,9 @@ export function downloadBlob(blob: Blob | File, fileName?: string) {
   anchor.click();
   anchor.remove();
 
-  URL.revokeObjectURL(url);
+  // Revoking synchronously can cancel the download before the browser has read the blob
+  // (Firefox and Safari in particular). Defer to the next task instead.
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 0);
 }

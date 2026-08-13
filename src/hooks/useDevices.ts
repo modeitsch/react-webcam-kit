@@ -10,17 +10,21 @@ function hasMediaDevices() {
   );
 }
 
-async function queryCameraPermission() {
+async function queryCameraPermissionStatus() {
   if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
-    return 'unknown' as const;
+    return null;
   }
 
   try {
-    const status = await navigator.permissions.query({ name: 'camera' });
-    return status.state;
+    return await navigator.permissions.query({ name: 'camera' });
   } catch {
-    return 'unknown' as const;
+    return null;
   }
+}
+
+async function queryCameraPermission() {
+  const status = await queryCameraPermissionStatus();
+  return status?.state ?? ('unknown' as const);
 }
 
 export function useDevices(): UseDevicesResult {
@@ -89,6 +93,30 @@ export function useDevices(): UseDevicesResult {
     mediaDevices.addEventListener?.('devicechange', handleDeviceChange);
     return () => {
       mediaDevices.removeEventListener?.('devicechange', handleDeviceChange);
+    };
+  }, [refresh]);
+
+  // Granting or revoking camera access in browser site settings also changes which device
+  // labels are readable, so re-read both when the permission state changes.
+  useEffect(() => {
+    let cancelled = false;
+    let permissionStatus: PermissionStatus | null = null;
+    const handleChange = () => {
+      void refresh();
+    };
+
+    void queryCameraPermissionStatus().then((nextStatus) => {
+      if (cancelled || !nextStatus) {
+        return;
+      }
+
+      permissionStatus = nextStatus;
+      nextStatus.addEventListener?.('change', handleChange);
+    });
+
+    return () => {
+      cancelled = true;
+      permissionStatus?.removeEventListener?.('change', handleChange);
     };
   }, [refresh]);
 

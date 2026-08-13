@@ -17,23 +17,37 @@ function resolveDimensions(video: HTMLVideoElement, options: CaptureFrameOptions
 
   if (!options.forceSourceSize) {
     const aspectRatio = width / height;
-    width = options.width ?? options.minWidth ?? video.clientWidth ?? video.videoWidth;
-    height = options.height ?? width / aspectRatio;
+    // `clientWidth` is 0 (not null/undefined) for an element that is hidden or not laid out,
+    // so `??` would happily produce a 0x0 canvas. `||` falls through to the intrinsic size.
+    const layoutWidth = video.clientWidth || video.videoWidth;
 
-    if (options.minHeight && height < options.minHeight) {
+    if (options.width) {
+      width = options.width;
+      height = options.height ?? width / aspectRatio;
+    } else if (options.height) {
+      height = options.height;
+      width = height * aspectRatio;
+    } else {
+      width = options.minWidth ? Math.max(layoutWidth, options.minWidth) : layoutWidth;
+      height = width / aspectRatio;
+    }
+
+    // `minWidth`/`minHeight` are floors, never a forced downscale. They only apply when the
+    // caller has not pinned that dimension explicitly.
+    if (!options.height && options.minHeight && height < options.minHeight) {
       height = options.minHeight;
       width = height * aspectRatio;
     }
 
-    if (options.minWidth && width < options.minWidth) {
+    if (!options.width && options.minWidth && width < options.minWidth) {
       width = options.minWidth;
       height = width / aspectRatio;
     }
   }
 
   return {
-    height: Math.round(options.height ?? height),
-    width: Math.round(options.width ?? width),
+    height: Math.round(height),
+    width: Math.round(width),
   };
 }
 
