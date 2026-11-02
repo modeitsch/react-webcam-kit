@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0
+
+- Release screen-share streams approved after stop or unmount, and ignore superseded requests.
+- Reuse active composite pipelines on repeated starts and detach internal videos on stop.
+- Clip composite layers to their bounds when cover fitting expands the source image.
+- Add `retainChunks: false` for upload-only recording without retained media or final Blob/File.
+- Start a fresh upload session per recording in the advanced example and report upload failures.
+- Include the advanced example and documentation site build in CI.
+
 ## 0.8.0
 
 ### Behavior Changes

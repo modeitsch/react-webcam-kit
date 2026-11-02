@@ -27,8 +27,8 @@ client-side performance:
 
 - **Zero runtime dependencies beyond React** - no transitive dependency tree, fewer vulnerability
   surprises, and no unexpected bundle-size changes from nested packages.
-- **Small published browser entry** - the current npm release is about `6.2 KB` gzip on Bundlephobia,
-  and this repo now enforces size budgets in CI.
+- **Measured browser entry** - CI enforces bundle-size budgets; check the live Bundlephobia report
+  for the size of the published version.
 - **Hooks-first React API** - functional components and hooks only, with no class component layer or
   polyfill-heavy architecture.
 - **Native browser media APIs** - wraps `getUserMedia`, `getDisplayMedia`, canvas capture, and
@@ -38,7 +38,7 @@ client-side performance:
 
 | Package                  | Runtime dependencies | Browser entry size           | Type checks |
 | ------------------------ | -------------------- | ---------------------------- | ----------- |
-| `react-webcam-kit`       | React peer only      | ~6.2 KB gzip on Bundlephobia | Built in    |
+| `react-webcam-kit`       | React peer only      | See live Bundlephobia report | Built in    |
 | Typical webcam wrappers  | Varies by package    | Recheck per release          | Varies      |
 | Recording/helper bundles | Often larger         | Recheck per release          | Varies      |
 
@@ -708,17 +708,14 @@ probe stream immediately, so the indicator light does not stay on during an onbo
 
 ### `createChunkUploader()`
 
-`createChunkUploader(options)` uploads recording chunks as they arrive instead of buffering a whole
-recording in memory.
+`createChunkUploader(options)` uploads recording chunks as they arrive. Set recorder
+`retainChunks: false` for upload-only recording without retaining media in the recorder.
+In this mode `blob` and `file` remain null, and `onStop` receives an empty Blob and chunk array.
+Create a new uploader for every recording session. The upload queue itself can still grow if
+your network is slower than the recording bitrate.
 
-```tsx
-const uploader = useMemo(() => createChunkUploader({ url: '/api/uploads', uploadId }), [uploadId]);
-const recorder = useMediaRecorder({
-  timeslice: 5000,
-  onDataAvailable: (event) => uploader.enqueue(event.data),
-  onStop: () => uploader.complete(),
-});
-```
+See the [chunk upload guide](./docs/REACT-CHUNK-UPLOAD.md) for a full session example with
+`onStart`, `onDataAvailable`, error handling, and `retainChunks: false`.
 
 Chunks are sent strictly in order with retry and backoff — a media container cannot be reassembled
 from out-of-order parts.
@@ -733,10 +730,17 @@ from out-of-order parts.
 - [React Audio Recorder](https://modeitsch.com/react-webcam-kit/react-audio-recorder/)
 - [React Screen Recorder](https://modeitsch.com/react-webcam-kit/react-screen-recorder/)
 - [React QR Barcode Scanner](https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/)
+- [React Camera Torch And Zoom](https://modeitsch.com/react-webcam-kit/react-camera-capabilities/)
+- [React Composite Screen Recorder](https://modeitsch.com/react-webcam-kit/react-composite-recorder/)
+- [React Chunk Upload Recorder](https://modeitsch.com/react-webcam-kit/react-chunk-upload/)
 - [React Front/Back Camera](https://modeitsch.com/react-webcam-kit/react-front-back-camera/)
 - [React Avatar Capture](https://modeitsch.com/react-webcam-kit/react-avatar-capture/)
 - [React getUserMedia Hooks](https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/)
 - [React QR Barcode Scanner Guide](./docs/REACT-QR-BARCODE-SCANNER.md)
+- [React Barcode Scanner Guide](./docs/REACT-BARCODE-SCANNER.md)
+- [React Camera Torch And Zoom Guide](./docs/REACT-CAMERA-CAPABILITIES.md)
+- [React Composite Recorder Guide](./docs/REACT-COMPOSITE-RECORDER.md)
+- [React Chunk Upload Guide](./docs/REACT-CHUNK-UPLOAD.md)
 - [React Screen Recorder Guide](./docs/REACT-SCREEN-RECORDER.md)
 - [React Audio Recorder Guide](./docs/REACT-AUDIO-RECORDER.md)
 - [API Reference](./docs/API.md)
@@ -752,6 +756,7 @@ from out-of-order parts.
 ## Examples
 
 - [Camera recorder starter](./examples/camera-recorder)
+- [Advanced media kit](./examples/advanced-media-kit)
 - [Vite starter](./examples/vite-starter)
 - [Next.js App Router starter](./examples/next-app-router)
 - [React Router starter](./examples/react-router)

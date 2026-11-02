@@ -5,6 +5,10 @@ TypeScript types.
 
 ## Exports
 
+`useMediaRecorder({ retainChunks: false })` delivers data through `onDataAvailable` without
+retaining chunks or creating a final Blob/File. `onStop` receives an empty Blob and array.
+The default remains `true`; `publishChunks: false` only controls reactive chunk updates.
+
 ```ts
 export { Webcam } from 'react-webcam-kit';
 export { RECORDING_QUALITY_PRESETS } from 'react-webcam-kit';

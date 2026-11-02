@@ -388,6 +388,11 @@ h3 {
   align-items: start;
 }
 
+.live-demo__stage {
+  display: grid;
+  gap: 14px;
+}
+
 .live-demo__preview {
   position: relative;
   overflow: hidden;
@@ -403,6 +408,18 @@ h3 {
   min-height: 320px;
   aspect-ratio: 16 / 10;
   object-fit: cover;
+}
+
+.scan-badge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: rgb(16 24 39 / 78%);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 850;
 }
 
 .live-demo__placeholder {
@@ -426,6 +443,34 @@ h3 {
   text-transform: capitalize;
 }
 
+.live-demo__canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #101827;
+}
+
+.scan-result {
+  display: grid;
+  gap: 5px;
+  border-left: 4px solid var(--cyan);
+  padding: 10px 12px;
+  background: var(--surface);
+}
+
+.scan-result strong {
+  color: var(--ink);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.scan-result span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .live-demo__panel {
   display: grid;
   gap: 16px;
@@ -436,6 +481,10 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
+}
+
+.status-list--wide {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .status-list div {
@@ -482,6 +531,18 @@ h3 {
 .control-grid button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.range-control {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 780;
+}
+
+.range-control input {
+  width: 100%;
+  accent-color: var(--blue);
 }
 
 .capture-result {
@@ -705,6 +766,10 @@ code {
     max-width: 720px;
   }
 
+  .status-list--wide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .feature-grid,
   .guide-grid,
   .quality-grid {
@@ -734,6 +799,7 @@ code {
 
   .hero__stats,
   .status-list,
+  .status-list--wide,
   .feature-grid,
   .guide-grid,
   .coverage-list,

@@ -26,6 +26,7 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
   const optionsRef = useRef(options);
   const cleanupTrackListenersRef = useRef<(() => void) | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const requestIdRef = useRef(0);
   const [error, setError] = useState<CameraError | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [internalStatus, setStatus] = useState<CameraStatus>('idle');
@@ -47,6 +48,7 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
 
       cleanupTrackListenersRef.current?.();
       cleanupTrackListenersRef.current = null;
+      stopStream(nextStream);
       streamRef.current = null;
       setStream(null);
       setStatus('stopped');
@@ -65,6 +67,7 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
   }, []);
 
   const stop = useCallback(() => {
+    requestIdRef.current += 1;
     const currentStream = streamRef.current;
 
     if (!currentStream) {
@@ -97,11 +100,17 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
 
       setStatus('requesting');
       setError(null);
+      const requestId = ++requestIdRef.current;
 
       try {
         const nextStream = await navigator.mediaDevices.getDisplayMedia(
           constraintsOverride ?? buildConstraints(optionsRef.current),
         );
+
+        if (requestId !== requestIdRef.current) {
+          stopStream(nextStream);
+          return null;
+        }
 
         if (streamRef.current) {
           clearTrackListeners();
@@ -115,6 +124,9 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
         optionsRef.current.onStart?.(nextStream);
         return nextStream;
       } catch (caughtError) {
+        if (requestId !== requestIdRef.current) {
+          return null;
+        }
         const normalizedError = normalizeMediaError(caughtError);
         setError(normalizedError);
         setStatus(normalizedError.type === 'permission-denied' ? 'denied' : 'error');
@@ -127,6 +139,7 @@ export function useDisplayMedia(options: UseDisplayMediaOptions = {}): UseDispla
 
   useEffect(() => {
     return () => {
+      requestIdRef.current += 1;
       const currentStream = streamRef.current;
 
       if (currentStream) {

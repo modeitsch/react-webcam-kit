@@ -1,6 +1,6 @@
 # react-webcam-kit LLM Context
 
-react-webcam-kit is a TypeScript React package for browser webcam, camera capture, screen capture, camera recording, screen recording, audio recording, upload-ready files, device selection, and media cleanup flows.
+react-webcam-kit is a TypeScript React package for browser webcam, camera capture, screen capture, camera recording, screen recording, audio recording, QR/barcode scanning, torch and zoom controls, composite recording, chunk uploads, upload-ready files, device selection, and media cleanup flows.
 
 Use this file as compact package context for coding assistants, documentation agents, and search tools. Prefer the linked repository docs for the latest full API reference.
 
@@ -25,6 +25,7 @@ import {
   Webcam,
   blobToFile,
   captureFrame,
+  createChunkUploader,
   createUploadFormData,
   downloadBlob,
   formatDuration,
@@ -32,10 +33,18 @@ import {
   getSupportedMimeType,
   normalizeMediaError,
   useAudioRecorder,
+  useAudioLevel,
+  useBarcodeScanner,
+  useCameraCapabilities,
   useCameraPermissions,
+  useCompositeStream,
   useDevices,
   useDisplayMedia,
+  useFrameProcessor,
+  useImageCapture,
+  useMediaPermissions,
   useMediaRecorder,
+  useMicrophonePermissions,
   useObjectUrl,
   useWebcam,
   type CameraError,
@@ -52,6 +61,14 @@ import {
 - Use `useAudioRecorder()` when the app needs microphone-only recording.
 - Use `useDisplayMedia()` when the app needs screen, window, or tab capture.
 - Use `useMediaRecorder()` when the app needs to record an active `MediaStream`, show duration, or enforce a max duration.
+- Use `useCameraCapabilities()` when the app needs torch, zoom, focus mode, or advanced video track controls.
+- Use `useBarcodeScanner()` when the app needs QR code or barcode scanning without adding a decoder dependency.
+- Use `useImageCapture()` when the app needs a full-resolution camera still instead of a preview-frame screenshot.
+- Use `useAudioLevel()` when the app needs recorder meters, waveform data, or frequency data.
+- Use `useFrameProcessor()` when the app needs per-frame video work such as lightweight analysis or custom detection.
+- Use `useCompositeStream()` when the app needs to record a screen share with a webcam picture-in-picture layer.
+- Use `useMediaPermissions()` or `useMicrophonePermissions()` when the app needs permission preflight outside the camera hook.
+- Use `createChunkUploader()` when the app needs to upload long recording chunks while recording.
 - Use `getRecordingPresetConstraints()` with recorder `quality` when the app needs named low, medium, high, HD, or full-HD recording targets.
 - Use `captureFrame()` when the app already owns a video element and only needs capture helpers.
 - Use `useObjectUrl()` when previewing a Blob, File, or MediaSource.
@@ -442,6 +459,9 @@ Do not assume permission is granted before calling `start()`. Do not assume devi
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
 - React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/
 - React QR barcode scanner guide: https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/
+- React camera torch and zoom guide: https://modeitsch.com/react-webcam-kit/react-camera-capabilities/
+- React composite screen recorder guide: https://modeitsch.com/react-webcam-kit/react-composite-recorder/
+- React chunk upload recorder guide: https://modeitsch.com/react-webcam-kit/react-chunk-upload/
 - Short LLM context: https://modeitsch.com/react-webcam-kit/llms.txt
 - API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
 - AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md

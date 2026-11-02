@@ -237,6 +237,10 @@ export interface UseMediaRecorderOptions {
    * `getChunks()` and `onDataAvailable`.
    */
   publishChunks?: boolean;
+  /** Keep media chunks and build a final Blob. Set false for upload-only recording.
+   * onStop receives an empty Blob and array; blob/file remain null. Defaults to true.
+   */
+  retainChunks?: boolean;
   quality?: RecordingQualityPreset;
   stream?: MediaStream | null;
   timeslice?: number;

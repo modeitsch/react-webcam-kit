@@ -327,6 +327,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
         const sessionId = sessionIdRef.current + 1;
         const sessionChunks: Blob[] = [];
+        const retainChunks = optionsRef.current.retainChunks !== false;
         sessionIdRef.current = sessionId;
         activeSessionIdRef.current = sessionId;
         chunksRef.current = [];
@@ -347,7 +348,7 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
 
           optionsRef.current.onDataAvailable?.(event);
 
-          if (event.data.size === 0) {
+          if (event.data.size === 0 || !retainChunks) {
             return;
           }
 
@@ -417,12 +418,14 @@ export function useMediaRecorder(options: UseMediaRecorderOptions = {}): UseMedi
           const recordedBlob = new Blob(finalChunks, {
             type: recordedType ?? '',
           });
-          const fileName = resolveRecordingFileName(optionsRef.current, recordedBlob);
+          const fileName = retainChunks
+            ? resolveRecordingFileName(optionsRef.current, recordedBlob)
+            : null;
           const recordedFile = fileName
             ? new File([recordedBlob], fileName, { type: recordedBlob.type })
             : null;
           setChunks(finalChunks);
-          setBlob(recordedBlob);
+          setBlob(retainChunks ? recordedBlob : null);
           setFile(recordedFile);
           setStatus('stopped');
           optionsRef.current.onStop?.(recordedBlob, finalChunks);

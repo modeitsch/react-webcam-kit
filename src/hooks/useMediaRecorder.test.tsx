@@ -72,6 +72,34 @@ function createStream() {
 }
 
 describe('useMediaRecorder', () => {
+  it('delivers upload-only chunks without retaining media', () => {
+    Object.defineProperty(globalThis, 'MediaRecorder', {
+      configurable: true,
+      value: MockMediaRecorder,
+    });
+    const onDataAvailable = vi.fn();
+    const onStop = vi.fn();
+    const { result } = renderHook(() =>
+      useMediaRecorder({
+        stream: createStream(),
+        retainChunks: false,
+        onDataAvailable,
+        onStop,
+      }),
+    );
+    act(() => {
+      const recorder = result.current.start() as unknown as MockMediaRecorder;
+      recorder.emitChunk(new Blob(['video']));
+    });
+    expect(onDataAvailable).toHaveBeenCalledTimes(1);
+    expect(result.current.getChunks()).toEqual([]);
+    act(() => {
+      result.current.stop();
+    });
+    expect(result.current.blob).toBeNull();
+    expect(result.current.file).toBeNull();
+    expect(onStop).toHaveBeenCalledWith(expect.objectContaining({ size: 0 }), []);
+  });
   afterEach(() => {
     vi.useRealTimers();
     MockMediaRecorder.stopDispatch = 'sync';

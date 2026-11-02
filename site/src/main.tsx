@@ -1,11 +1,15 @@
-import { StrictMode, useState } from 'react';
+import { StrictMode, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import {
   downloadBlob,
   formatDuration,
   getRecordingPresetConstraints,
+  useBarcodeScanner,
+  useCameraCapabilities,
   useCameraPermissions,
+  useCompositeStream,
+  useDisplayMedia,
   useMediaRecorder,
   useObjectUrl,
   useWebcam,
@@ -44,6 +48,10 @@ const featureItems = [
     body: 'Record streams with quality presets, browser MIME selection, pause/resume, audio mute, chunks, and final Blob/File output.',
   },
   {
+    title: 'Advanced media flows',
+    body: 'Barcode scanning, torch and zoom controls, screen-plus-webcam composition, audio meters, and chunked uploads are first-class APIs.',
+  },
+  {
     title: 'Package checks',
     body: 'ESM, CommonJS, and TypeScript declarations are checked with publint, Are The Types Wrong, and consumer type tests.',
   },
@@ -63,6 +71,17 @@ const apiRows = [
   ],
   ['useDisplayMedia()', 'Captures browser screens, windows, and tabs for screen recorder flows.'],
   ['useCameraPermissions()', 'Permission probe for preflight camera UI and unsupported browsers.'],
+  [
+    'useCameraCapabilities()',
+    'Feature-detected torch, zoom, focus mode, and advanced constraints.',
+  ],
+  ['useBarcodeScanner()', 'Native QR and barcode scanning with dedupe and fallback states.'],
+  ['useImageCapture()', 'Full-resolution still photos with preview-frame fallback.'],
+  ['useAudioLevel()', 'RMS, peak, waveform, and frequency data for recording meters.'],
+  ['useFrameProcessor()', 'Per-frame video processing without queue buildup.'],
+  ['useCompositeStream()', 'Screen plus webcam picture-in-picture streams for recording.'],
+  ['useMediaPermissions()', 'Camera and microphone permission preflight with safe probe cleanup.'],
+  ['createChunkUploader()', 'Ordered, retried upload queue for long MediaRecorder sessions.'],
   ['formatDuration()', 'Formats recorder durations as compact timer labels.'],
   [
     'getRecordingPresetConstraints()',
@@ -84,6 +103,12 @@ const capabilityItems = [
   'Use low, medium, high, HD, and full-HD recording quality presets',
   'Build upload-ready FormData from screenshot and recording Blobs',
   'Record audio-only streams with the same MediaRecorder hook',
+  'Scan QR codes and barcodes with the native BarcodeDetector where available',
+  'Control torch, zoom, and focus mode on devices that expose camera capabilities',
+  'Take full-resolution still photos with ImageCapture and a preview fallback',
+  'Build Loom-style screen plus webcam composite recordings',
+  'Upload long recordings chunk by chunk with ordered retry and progress callbacks',
+  'Show audio levels, waveform data, and frequency data during recording',
   'Show recorder duration and enforce max recording duration',
   'Preview recorded Blobs with safe object URL cleanup',
   'Switch cameras by exact device ID after users choose a device',
@@ -115,6 +140,9 @@ const guideItems = [
   ['React audio recorder', './react-audio-recorder/'],
   ['React screen recorder', './react-screen-recorder/'],
   ['React QR barcode scanner', './react-qr-barcode-scanner/'],
+  ['React camera torch and zoom', './react-camera-capabilities/'],
+  ['React composite screen recorder', './react-composite-recorder/'],
+  ['React chunk upload recorder', './react-chunk-upload/'],
   ['Front and back camera switching', './react-front-back-camera/'],
   ['React avatar capture', './react-avatar-capture/'],
   ['React getUserMedia hooks', './react-getusermedia-hooks/'],
@@ -136,6 +164,8 @@ const guideItems = [
 
 function LiveDemo() {
   const [capture, setCapture] = useState<Blob | null>(null);
+  const [detectedCode, setDetectedCode] = useState<string | null>(null);
+  const [chunkCount, setChunkCount] = useState(0);
   const permissions = useCameraPermissions({ audio: true });
   const camera = useWebcam({
     audio: true,
@@ -145,15 +175,60 @@ function LiveDemo() {
       facingMode: { ideal: 'user' },
     },
   });
+  const screen = useDisplayMedia({ audio: true, video: true });
+  const cameraControls = useCameraCapabilities(camera.stream);
+  const scanner = useBarcodeScanner(camera.videoRef, {
+    formats: ['qr_code', 'ean_13', 'code_128'],
+    onDetected: (code) => {
+      setDetectedCode(code.rawValue);
+    },
+  });
+  const compositeLayers = useMemo(
+    () => [
+      { audio: true, fit: 'contain' as const, stream: screen.stream },
+      {
+        audio: true,
+        fit: 'cover' as const,
+        height: 162,
+        mirrored: true,
+        stream: camera.stream,
+        width: 288,
+        x: 968,
+        y: 526,
+      },
+    ],
+    [camera.stream, screen.stream],
+  );
+  const composite = useCompositeStream({
+    backgroundColor: '#101827',
+    height: 720,
+    layers: compositeLayers,
+    width: 1280,
+  });
   const recorder = useMediaRecorder({
     fileName: 'react-webcam-kit-demo',
     fileType: 'webm',
     maxDuration: 10_000,
     quality: 'hd',
     stream: camera.stream,
+    timeslice: 2000,
+    onDataAvailable(event) {
+      if (event.data.size > 0) {
+        setChunkCount((count) => count + 1);
+      }
+    },
+  });
+  const compositeRecorder = useMediaRecorder({
+    fileName: 'react-webcam-kit-composite-demo',
+    fileType: 'webm',
+    maxDuration: 10_000,
+    quality: 'hd',
+    stream: composite.stream,
   });
   const captureUrl = useObjectUrl(capture);
   const playbackUrl = useObjectUrl(recorder.blob);
+  const compositePlaybackUrl = useObjectUrl(compositeRecorder.blob);
+  const zoomRange = cameraControls.capabilities.zoom;
 
   async function captureFrame() {
     const blob = await camera.getScreenshotBlob({
@@ -168,22 +243,38 @@ function LiveDemo() {
     <section className="section live-demo" id="demo">
       <div className="section__intro">
         <p className="section-label">Live demo</p>
-        <h2>Try preview, capture, permissions, and recording in one browser demo.</h2>
+        <h2>Try preview, capture, record, scan, hardware controls, and composite recording.</h2>
       </div>
       <div className="live-demo__layout">
-        <div className="live-demo__preview">
-          <video ref={camera.videoRef} autoPlay playsInline muted />
-          {camera.status !== 'ready' ? (
-            <div className="live-demo__placeholder">
-              <strong>{camera.status}</strong>
-              <span>Camera preview appears here after permission.</span>
-            </div>
-          ) : null}
+        <div className="live-demo__stage">
+          <div className="live-demo__preview">
+            <video ref={camera.videoRef} autoPlay playsInline muted />
+            {scanner.isScanning ? <span className="scan-badge">Scanner active</span> : null}
+            {camera.status !== 'ready' ? (
+              <div className="live-demo__placeholder">
+                <strong>{camera.status}</strong>
+                <span>Camera preview appears here after permission.</span>
+              </div>
+            ) : null}
+          </div>
+          <canvas
+            ref={composite.canvasRef}
+            className="live-demo__canvas"
+            aria-label="Composite stream preview"
+          />
+          <div className="scan-result">
+            <strong>Scan result</strong>
+            <span>
+              {scanner.isSupported
+                ? (detectedCode ?? 'Point the camera at a QR code or barcode')
+                : 'BarcodeDetector is not available in this browser'}
+            </span>
+          </div>
         </div>
         <div className="live-demo__panel">
-          <dl className="status-list">
+          <dl className="status-list status-list--wide">
             <div>
-              <dt>Status</dt>
+              <dt>Camera</dt>
               <dd>{camera.status}</dd>
             </div>
             <div>
@@ -191,12 +282,32 @@ function LiveDemo() {
               <dd>{permissions.permission}</dd>
             </div>
             <div>
-              <dt>Recording</dt>
+              <dt>Recorder</dt>
               <dd>{recorder.status}</dd>
             </div>
             <div>
               <dt>Timer</dt>
               <dd>{formatDuration(recorder.duration)} / 0:10</dd>
+            </div>
+            <div>
+              <dt>Screen</dt>
+              <dd>{screen.status}</dd>
+            </div>
+            <div>
+              <dt>Composite</dt>
+              <dd>
+                {composite.isRunning ? 'running' : composite.isSupported ? 'ready' : 'unsupported'}
+              </dd>
+            </div>
+            <div>
+              <dt>Chunks</dt>
+              <dd>{chunkCount}</dd>
+            </div>
+            <div>
+              <dt>Scanner</dt>
+              <dd>
+                {scanner.isSupported ? (scanner.isScanning ? 'scanning' : 'ready') : 'unsupported'}
+              </dd>
             </div>
           </dl>
           <div className="control-grid" aria-label="Camera demo controls">
@@ -220,6 +331,27 @@ function LiveDemo() {
             </button>
             <button
               type="button"
+              disabled={!cameraControls.supportsTorch}
+              onClick={() => void cameraControls.setTorch(!cameraControls.torch)}
+            >
+              {cameraControls.torch ? 'Torch off' : 'Torch on'}
+            </button>
+            <button
+              type="button"
+              disabled={!scanner.isSupported}
+              onClick={() => {
+                if (scanner.isScanning) {
+                  scanner.stop();
+                  return;
+                }
+
+                scanner.start();
+              }}
+            >
+              {scanner.isScanning ? 'Stop scan' : 'Scan codes'}
+            </button>
+            <button
+              type="button"
               disabled={!capture}
               onClick={() => {
                 if (capture) {
@@ -232,7 +364,10 @@ function LiveDemo() {
             <button
               type="button"
               disabled={!camera.stream || recorder.status === 'recording'}
-              onClick={() => recorder.start()}
+              onClick={() => {
+                setChunkCount(0);
+                recorder.start();
+              }}
             >
               Record
             </button>
@@ -254,10 +389,63 @@ function LiveDemo() {
             >
               Download video
             </button>
+            <button
+              type="button"
+              disabled={!screen.isSupported}
+              onClick={() => void screen.start()}
+            >
+              Share screen
+            </button>
+            <button
+              type="button"
+              disabled={!screen.stream || !camera.stream}
+              onClick={() => composite.start()}
+            >
+              Start composite
+            </button>
+            <button
+              type="button"
+              disabled={!composite.stream || compositeRecorder.status === 'recording'}
+              onClick={() => compositeRecorder.start()}
+            >
+              Record composite
+            </button>
+            <button
+              type="button"
+              disabled={compositeRecorder.status !== 'recording'}
+              onClick={compositeRecorder.stop}
+            >
+              Stop composite
+            </button>
+            <button
+              type="button"
+              disabled={!compositeRecorder.file}
+              onClick={() => {
+                if (compositeRecorder.file) {
+                  downloadBlob(compositeRecorder.file);
+                }
+              }}
+            >
+              Download composite
+            </button>
           </div>
+          {cameraControls.supportsZoom && zoomRange ? (
+            <label className="range-control">
+              <span>Zoom {cameraControls.zoom ?? zoomRange.min}</span>
+              <input
+                type="range"
+                min={zoomRange.min}
+                max={zoomRange.max}
+                step={zoomRange.step}
+                value={cameraControls.zoom ?? zoomRange.min}
+                onChange={(event) => void cameraControls.setZoom(Number(event.target.value))}
+              />
+            </label>
+          ) : null}
           {recorder.recordingTimeLimitReached ? (
             <p className="demo-note">The demo recording stopped at the 10 second limit.</p>
           ) : null}
+          {composite.error ? <p className="demo-note">{composite.error.message}</p> : null}
           {captureUrl ? (
             <figure className="capture-result">
               <img src={captureUrl} alt="Captured camera frame" />
@@ -268,6 +456,12 @@ function LiveDemo() {
             <figure className="capture-result">
               <video src={playbackUrl} controls />
               <figcaption>Latest recorded video preview</figcaption>
+            </figure>
+          ) : null}
+          {compositePlaybackUrl ? (
+            <figure className="capture-result">
+              <video src={compositePlaybackUrl} controls />
+              <figcaption>Latest composite recording preview</figcaption>
             </figure>
           ) : null}
         </div>
@@ -298,8 +492,9 @@ function App() {
           <p className="eyebrow">React camera toolkit</p>
           <h1>React webcam capture and recording APIs.</h1>
           <p className="lead">
-            A professional React webcam package for camera preview, screenshots, video recording,
-            device switching, upload helpers, getUserMedia cleanup, and typed browser errors.
+            A professional React webcam package for camera preview, screenshots, video recording, QR
+            and barcode scanning, torch and zoom, screen-plus-webcam recording, chunk uploads,
+            getUserMedia cleanup, and typed browser errors.
           </p>
           <div className="actions" aria-label="Primary actions">
             <a className="button button--primary" href="#install">
@@ -312,11 +507,11 @@ function App() {
           </div>
           <dl className="hero__stats" aria-label="Package status">
             <div>
-              <dt>0.7.0</dt>
+              <dt>0.9.0</dt>
               <dd>Latest release</dd>
             </div>
             <div>
-              <dt>25</dt>
+              <dt>40+</dt>
               <dd>Public exports</dd>
             </div>
             <div>
@@ -345,9 +540,9 @@ function App() {
           </div>
           <div className="demo-shell__controls">
             <span>getScreenshotBlob()</span>
-            <span>quality=&quot;hd&quot;</span>
-            <span>switchDevice()</span>
-            <span>switchFacingMode()</span>
+            <span>useBarcodeScanner()</span>
+            <span>useCompositeStream()</span>
+            <span>createChunkUploader()</span>
           </div>
         </div>
       </section>

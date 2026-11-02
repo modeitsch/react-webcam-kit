@@ -3,9 +3,9 @@ import type { ChunkUploader, CreateChunkUploaderOptions } from '../types';
 /**
  * Uploads recording chunks as they arrive instead of buffering the whole recording in memory.
  *
- * Wire it to `useMediaRecorder({ timeslice, onDataAvailable })`: a one-hour screen recording
- * never has to be held as a single multi-gigabyte Blob, and the upload finishes shortly after
- * the recording does rather than starting from scratch at the end.
+ * Wire it to `useMediaRecorder({ timeslice, retainChunks: false, onDataAvailable })` for
+ * upload-only recording. Pending uploads still retain their Blobs until sent, so monitor
+ * the queue when the network is slower than the recording bitrate.
  *
  * Chunks are sent strictly in order — a media container is not resumable from an arbitrary
  * byte range, so a reordered chunk would corrupt the file. Each request is retried with

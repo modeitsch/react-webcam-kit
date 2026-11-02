@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Composite Screen Recorder - screen plus webcam recording</title>
+    <meta
+      name="description"
+      content="Build a React screen plus webcam recorder with useCompositeStream, useDisplayMedia, and useMediaRecorder."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-composite-recorder/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React composite recorder</p>
+      <h1>Record a screen share with a webcam picture-in-picture layer.</h1>
+      <p class="lead">
+        Use `useCompositeStream()` to draw multiple streams to a canvas, mix audio, and pass the
+        final stream to `useMediaRecorder()`.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Composite recorder example</h2>
+      <pre><code>const screen = useDisplayMedia({ audio: true, video: true });
+const camera = useWebcam({ audio: true });
+const composite = useCompositeStream({
+  height: 720,
+  width: 1280,
+  layers: [
+    { audio: true, fit: 'contain', stream: screen.stream },
+    { audio: true, fit: 'cover', height: 180, width: 320, x: 940, y: 520, stream: camera.stream },
+  ],
+});
+const recorder = useMediaRecorder({ quality: 'hd', stream: composite.stream });</code></pre>
+
+      <h2>Composite recording features</h2>
+      <ul>
+        <li>Draw screen, webcam, or other video streams in predictable layer order.</li>
+        <li>Mix audio from selected layers into one recordable stream.</li>
+        <li>Preview the composite canvas before recording.</li>
+      </ul>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-screen-recorder/">React screen recorder</a>
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-chunk-upload/">React chunk upload recorder</a>
+      </div>
+    </main>
+  </body>
+</html>

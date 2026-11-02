@@ -2,46 +2,58 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-webcam-capture/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-camera-recording/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-audio-recorder/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-screen-recorder/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-camera-capabilities/</loc>
+    <lastmod>2026-08-13</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-composite-recorder/</loc>
+    <lastmod>2026-08-13</lastmod>
+  </url>
+  <url>
+    <loc>https://modeitsch.com/react-webcam-kit/react-chunk-upload/</loc>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-front-back-camera/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-avatar-capture/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/llms.txt</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
   <url>
     <loc>https://modeitsch.com/react-webcam-kit/llms-full.txt</loc>
-    <lastmod>2026-07-01</lastmod>
+    <lastmod>2026-08-13</lastmod>
   </url>
 </urlset>

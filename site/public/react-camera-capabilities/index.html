@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Camera Torch and Zoom - webcam hardware controls</title>
+    <meta
+      name="description"
+      content="Control camera torch, zoom, and focus in React with useCameraCapabilities, feature detection, and safe MediaStreamTrack constraints."
+    />
+    <meta name="robots" content="index, follow" />
+    <link
+      rel="canonical"
+      href="https://modeitsch.com/react-webcam-kit/react-camera-capabilities/"
+    />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React camera controls</p>
+      <h1>Control torch, zoom, and focus from a React webcam stream.</h1>
+      <p class="lead">
+        Use `useCameraCapabilities()` to read what the active camera track supports and apply
+        hardware controls only when the browser and device expose them.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Torch and zoom example</h2>
+      <pre><code>import { useCameraCapabilities, useWebcam } from 'react-webcam-kit';
+
+export function CameraControls() {
+  const camera = useWebcam({
+    audio: false,
+    videoConstraints: { facingMode: { ideal: 'environment' } },
+  });
+  const controls = useCameraCapabilities(camera.stream);
+  const zoom = controls.capabilities.zoom;
+
+  return (
+    &lt;&gt;
+      &lt;video {...camera.getVideoProps()} /&gt;
+      &lt;button disabled={!controls.supportsTorch} onClick={() =&gt; controls.setTorch(!controls.torch)}&gt;
+        {controls.torch ? 'Torch off' : 'Torch on'}
+      &lt;/button&gt;
+      {controls.supportsZoom && zoom ? (
+        &lt;input
+          type="range"
+          min={zoom.min}
+          max={zoom.max}
+          step={zoom.step}
+          value={controls.zoom ?? zoom.min}
+          onChange={(event) =&gt; controls.setZoom(Number(event.target.value))}
+        /&gt;
+      ) : null}
+    &lt;/&gt;
+  );
+}</code></pre>
+
+      <h2>Hardware control features</h2>
+      <ul>
+        <li>Feature-detect torch, zoom, and focus mode on the active video track.</li>
+        <li>Apply advanced constraints without hard-coding mobile-only assumptions.</li>
+        <li>Use scanner-friendly controls for low-light QR and barcode flows.</li>
+      </ul>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-qr-barcode-scanner/">React QR barcode scanner</a>
+        <a href="../react-front-back-camera/">React front/back camera</a>
+        <a href="../react-webcam-capture/">React webcam capture</a>
+      </div>
+    </main>
+  </body>
+</html>

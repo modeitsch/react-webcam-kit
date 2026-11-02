@@ -1,8 +1,8 @@
 # react-webcam-kit
 
-> Modern React webcam toolkit for camera preview, screenshots, recording, screen recording, audio recording, upload-ready camera files, device switching, front/back camera switching, and safe media cleanup.
+> Modern React webcam toolkit for camera preview, screenshots, recording, screen recording, audio recording, QR/barcode scanning, torch and zoom controls, composite recording, chunk uploads, upload-ready camera files, device switching, front/back camera switching, and safe media cleanup.
 
-react-webcam-kit is a small TypeScript React package for browser camera and screen capture work. It wraps `getUserMedia`, `getDisplayMedia`, `MediaRecorder`, canvas capture, media device enumeration, recording quality presets, and upload helpers with component and hook APIs.
+react-webcam-kit is a small TypeScript React package for browser camera and screen capture work. It wraps `getUserMedia`, `getDisplayMedia`, `MediaRecorder`, canvas capture, native `BarcodeDetector`, camera capabilities, media device enumeration, recording quality presets, and upload helpers with component and hook APIs.
 
 ## Install
 
@@ -19,6 +19,14 @@ npm install react-webcam-kit
 - `useAudioRecorder()`: hook for microphone-only recording with media lifecycle and recorder state.
 - `useDisplayMedia()`: hook for screen, window, and tab capture with start/stop lifecycle state.
 - `useMediaRecorder()`: hook for recording an active `MediaStream` with duration, maxDuration, pause/resume/cancel, Blob/File output, chunks, bitrate controls, MIME controls, and audio mute controls.
+- `useCameraCapabilities()`: hook for feature-detected torch, zoom, focus mode, and advanced video track constraints.
+- `useBarcodeScanner()`: hook for native QR code and barcode scanning with deduplication and unsupported browser state.
+- `useImageCapture()`: hook for full-resolution still photos with preview-frame fallback.
+- `useAudioLevel()`: hook for RMS, peak, waveform, and frequency data.
+- `useFrameProcessor()`: hook for per-frame video processing with `requestVideoFrameCallback`.
+- `useCompositeStream()`: hook for screen plus webcam picture-in-picture streams with mixed audio.
+- `useMediaPermissions()` and `useMicrophonePermissions()`: permission preflight hooks for camera and microphone flows.
+- `createChunkUploader()`: helper for ordered, retried MediaRecorder chunk uploads.
 - `useObjectUrl()`: hook for safe Blob, File, and MediaSource object URLs with cleanup.
 - `downloadBlob()`: utility for downloading Blob or File values.
 - `blobToFile()`: utility for converting screenshot or recording Blobs into named Files.
@@ -41,6 +49,10 @@ npm install react-webcam-kit
 - React camera recording upload
 - React QR scanner camera screen
 - React barcode scanner camera screen
+- React camera torch and zoom
+- React composite screen recorder
+- React MediaRecorder chunk upload
+- React screen plus webcam recorder
 - Recorder duration timers and recording time limits
 - Recording quality presets
 - Front/back mobile camera switching
@@ -91,6 +103,9 @@ import {
 - React avatar capture guide: https://modeitsch.com/react-webcam-kit/react-avatar-capture/
 - React getUserMedia hooks guide: https://modeitsch.com/react-webcam-kit/react-getusermedia-hooks/
 - React QR barcode scanner guide: https://modeitsch.com/react-webcam-kit/react-qr-barcode-scanner/
+- React camera torch and zoom guide: https://modeitsch.com/react-webcam-kit/react-camera-capabilities/
+- React composite screen recorder guide: https://modeitsch.com/react-webcam-kit/react-composite-recorder/
+- React chunk upload recorder guide: https://modeitsch.com/react-webcam-kit/react-chunk-upload/
 - Full LLM context: https://modeitsch.com/react-webcam-kit/llms-full.txt
 - API reference: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/API.md
 - AI usage guide: https://github.com/modeitsch/react-webcam-kit/blob/master/docs/AI-USAGE.md

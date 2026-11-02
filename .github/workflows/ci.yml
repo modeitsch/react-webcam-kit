@@ -35,6 +35,9 @@ jobs:
       - name: Audit dependencies
         run: npm run audit
 
+      - name: Build documentation site
+        run: npm run site:build
+
       - name: Build camera recorder example
         working-directory: examples/camera-recorder
         run: |
@@ -83,6 +86,7 @@ jobs:
       fail-fast: false
       matrix:
         example:
+          - advanced-media-kit
           - camera-recorder
           - vite-starter
           - next-app-router

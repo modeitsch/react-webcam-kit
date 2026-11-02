@@ -1,6 +1,6 @@
 {
   "name": "react-webcam-kit",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "React webcam, screen recorder, and audio recorder hooks for camera preview, screenshots, recording, device switching, and media cleanup.",
   "license": "MIT",
   "author": "modeitsch",
@@ -47,6 +47,10 @@
     "docs/API.md",
     "docs/assets/logo.svg",
     "docs/BROWSER-NOTES.md",
+    "docs/REACT-BARCODE-SCANNER.md",
+    "docs/REACT-CAMERA-CAPABILITIES.md",
+    "docs/REACT-CHUNK-UPLOAD.md",
+    "docs/REACT-COMPOSITE-RECORDER.md",
     "docs/COMPARISON.md",
     "docs/COMPATIBILITY.md",
     "docs/MIGRATION.md",

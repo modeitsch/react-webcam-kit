@@ -91,6 +91,7 @@ export function useCompositeStream(options: UseCompositeStreamOptions): UseCompo
   const rafRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const videosRef = useRef<HTMLVideoElement[]>([]);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -102,6 +103,11 @@ export function useCompositeStream(options: UseCompositeStreamOptions): UseCompo
     .join('|');
 
   const stop = useCallback(() => {
+    videosRef.current.forEach((video) => {
+      video.pause();
+      video.srcObject = null;
+    });
+    videosRef.current = [];
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -121,6 +127,9 @@ export function useCompositeStream(options: UseCompositeStreamOptions): UseCompo
   }, []);
 
   const start = useCallback(() => {
+    if (streamRef.current) {
+      return streamRef.current;
+    }
     if (!supported) {
       const unsupported = new Error('canvas.captureStream() is not supported in this environment.');
       setError(unsupported);
@@ -143,6 +152,7 @@ export function useCompositeStream(options: UseCompositeStreamOptions): UseCompo
     const activeLayers = optionsRef.current.layers
       .filter((layer): layer is CompositeLayer & { stream: MediaStream } => Boolean(layer.stream))
       .map((layer) => ({ layer, video: createVideoElement(layer.stream) }));
+    videosRef.current = activeLayers.map(({ video }) => video);
 
     activeLayers.forEach(({ video }) => {
       // play() only returns a promise in modern browsers; older ones (and jsdom) return void.
@@ -161,6 +171,9 @@ export function useCompositeStream(options: UseCompositeStreamOptions): UseCompo
 
         const rect = resolveRect(layer, width, height, video);
         context.save();
+        context.beginPath();
+        context.rect(layer.x ?? 0, layer.y ?? 0, layer.width ?? width, layer.height ?? height);
+        context.clip();
 
         if (layer.opacity !== undefined) {
           context.globalAlpha = layer.opacity;

@@ -35,6 +35,40 @@ function createStream() {
 }
 
 describe('useDisplayMedia', () => {
+  it.each(['stop', 'unmount'] as const)(
+    'releases a stream that arrives after %s',
+    async (action) => {
+      const stream = createStream();
+      let resolve!: (stream: MediaStream) => void;
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getDisplayMedia: vi.fn(
+            () =>
+              new Promise<MediaStream>((done) => {
+                resolve = done;
+              }),
+          ),
+        },
+      });
+      const onStart = vi.fn();
+      const { result, unmount } = renderHook(() => useDisplayMedia({ onStart }));
+      let pending!: Promise<MediaStream | null>;
+      act(() => {
+        pending = result.current.start();
+      });
+      act(() => {
+        if (action === 'stop') result.current.stop();
+        else unmount();
+      });
+      await act(async () => {
+        resolve(stream);
+        expect(await pending).toBeNull();
+      });
+      expect(stream.stop).toHaveBeenCalledOnce();
+      expect(onStart).not.toHaveBeenCalled();
+    },
+  );
   afterEach(() => {
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,

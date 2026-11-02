@@ -13,11 +13,16 @@ Configure trusted publishing once in the npm package settings:
    - Organization or user: `modeitsch`
    - Repository: `react-webcam-kit`
    - Workflow filename: `publish.yml`
+   - Environment: leave blank unless the workflow is later changed to use a named environment
    - Allowed action: `npm publish`
 5. Save the trusted publisher.
 
 The publish workflow uses GitHub OIDC with `id-token: write`, Node 24, npm latest, and npm
 provenance. No long-lived npm publish token is required.
+
+If npm returns `404 Not Found` during `npm publish --provenance`, the package usually does not have
+a matching Trusted Publisher entry yet. Recheck the owner, repository, and workflow filename values.
+The workflow filename is only `publish.yml`, not `.github/workflows/publish.yml`.
 
 ## Publish A Version
 
@@ -49,3 +54,9 @@ exists on npm, publishes with provenance, and creates a GitHub release for tag b
 
 If a release workflow fails before publishing, fix the issue and rerun the workflow. If npm already
 has the version, bump to a new patch version; npm versions are immutable.
+
+## TypeScript Major Upgrades
+
+Keep the package on the current TypeScript major until the lint and type-test stack officially
+supports the next major. For TypeScript 7, wait until `typescript-eslint`, ESLint, `tsup`, `vitest`,
+and the consumer type tests all pass without peer-dependency warnings or compatibility overrides.

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React MediaRecorder Chunk Upload - upload recording chunks</title>
+    <meta
+      name="description"
+      content="Upload React MediaRecorder chunks as they arrive with createChunkUploader, ordered retries, progress callbacks, and long recording support."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://modeitsch.com/react-webcam-kit/react-chunk-upload/" />
+    <link rel="stylesheet" href="../seo-pages.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="toplink" href="../">react-webcam-kit</a>
+      <p class="eyebrow">React chunk upload recorder</p>
+      <h1>Upload MediaRecorder chunks while a React camera recording is still running.</h1>
+      <p class="lead">
+        Use `createChunkUploader()` with `useMediaRecorder({ timeslice })` so long camera or screen
+        recordings do not need to wait for one final huge Blob before upload begins.
+      </p>
+      <div class="actions">
+        <a class="button button--primary" href="https://www.npmjs.com/package/react-webcam-kit"
+          >Install from npm</a
+        >
+        <a class="button" href="https://github.com/modeitsch/react-webcam-kit">View GitHub</a>
+      </div>
+
+      <h2>Chunk upload example</h2>
+      <pre><code>const uploader = createChunkUploader({
+  uploadId,
+  url: '/api/recordings/chunks',
+  onProgress: ({ uploaded }) =&gt; console.log(uploaded),
+});
+const recorder = useMediaRecorder({
+  stream: camera.stream,
+  timeslice: 5000,
+  onDataAvailable: (event) =&gt; uploader.enqueue(event.data),
+  onStop: () =&gt; uploader.complete(),
+});</code></pre>
+
+      <h2>Upload features</h2>
+      <ul>
+        <li>Send chunks in order with retry and exponential backoff.</li>
+        <li>Track uploaded and pending chunks for recording UI.</li>
+        <li>Add auth metadata, upload IDs, and custom fields to every request.</li>
+      </ul>
+
+      <h2>Related guides</h2>
+      <div class="related">
+        <a href="../react-camera-recording/">React camera recording</a>
+        <a href="../react-screen-recorder/">React screen recorder</a>
+        <a href="../react-composite-recorder/">React composite recorder</a>
+      </div>
+    </main>
+  </body>
+</html>

@@ -32,6 +32,9 @@ function installCanvasCapture() {
   } as unknown as MediaStream;
   const captureStream = vi.fn().mockReturnValue(captured);
   const context = {
+    beginPath: vi.fn(),
+    rect: vi.fn(),
+    clip: vi.fn(),
     drawImage: vi.fn(),
     fillRect: vi.fn(),
     fillStyle: '',
@@ -93,6 +96,39 @@ afterEach(() => {
 });
 
 describe('useCompositeStream', () => {
+  it('clips cover layers to their intended rectangle', () => {
+    const { context } = installCanvasCapture();
+    vi.spyOn(HTMLMediaElement.prototype, 'readyState', 'get').mockReturnValue(2);
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(640);
+    vi.spyOn(HTMLVideoElement.prototype, 'videoHeight', 'get').mockReturnValue(480);
+    const camera = createStream();
+    const { result } = renderHook(() =>
+      useCompositeStream({
+        layers: [{ stream: camera.stream, fit: 'cover', width: 320, height: 180, x: 940, y: 520 }],
+      }),
+    );
+    act(() => {
+      result.current.start();
+    });
+    expect(context.rect).toHaveBeenCalledWith(940, 520, 320, 180);
+    expect(context.clip).toHaveBeenCalledOnce();
+    expect(context.drawImage).toHaveBeenCalledWith(
+      expect.any(HTMLVideoElement),
+      940,
+      490,
+      320,
+      240,
+    );
+  });
+  it('reuses an active pipeline on repeated starts', () => {
+    const { captureStream } = installCanvasCapture();
+    const { result } = renderHook(() => useCompositeStream({ layers: [] }));
+    act(() => {
+      const first = result.current.start();
+      expect(result.current.start()).toBe(first);
+    });
+    expect(captureStream).toHaveBeenCalledTimes(1);
+  });
   it('reports unsupported without canvas.captureStream', () => {
     const { result } = renderHook(() => useCompositeStream({ layers: [] }));
 
