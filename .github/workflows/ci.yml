@@ -71,7 +71,7 @@ jobs:
 
       - name: Install React ${{ matrix.react.version }}
         run: |
-          npm install --no-save --package-lock=false \
+          npm install --package-lock=false \
             react@${{ matrix.react.version }} \
             react-dom@${{ matrix.react.version }} \
             @types/react@${{ matrix.react.types }} \
